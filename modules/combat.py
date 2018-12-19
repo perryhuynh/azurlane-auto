@@ -211,8 +211,8 @@ class CombatModule(object):
         battle is complete.
         """
         Logger.log_msg('Starting battle')
-        Utils.script_sleep(1)
-        Utils.touch_randomly(self.region['battle_start'])
+        while (Utils.exists('combat_auto_enabled')):
+            Utils.touch_randomly(self.region['battle_start'])
         Utils.script_sleep(30)
         while not Utils.exists('combat_battle_complete', 0.8):
             Utils.script_sleep(3)
