@@ -158,23 +158,23 @@ class CombatModule(object):
                     if direction == 'n':
                         current_location[1] = (
                             current_location[1] + (2 * y_dist * multiplier))
-                        Util.swipe(640, 360 - y_dist * multiplier,
-                                   640, 360 + y_dist * multiplier, 250)
+                        Utils.swipe(640, 360 - y_dist * multiplier,
+                                    640, 360 + y_dist * multiplier, 250)
                     elif direction == 's':
                         current_location[1] = (
                             current_location[1] - (2 * y_dist * multiplier))
-                        Util.swipe(640, 360 + y_dist * multiplier,
-                                   640, 360 - y_dist * multiplier, 250)
+                        Utils.swipe(640, 360 + y_dist * multiplier,
+                                    640, 360 - y_dist * multiplier, 250)
                     elif direction == 'e':
                         current_location[0] = (
                             current_location[0] + (2 * x_dist * multiplier))
-                        Util.swipe(640 + x_dist * multiplier, 360,
-                                   640 - x_dist * multiplier, 360, 250)
+                        Utils.swipe(640 + x_dist * multiplier, 360,
+                                    640 - x_dist * multiplier, 360, 250)
                     elif direction == 'w':
                         current_location[0] = (
                             current_location[0] - (2 * x_dist * multiplier))
-                        Util.swipe(640 - x_dist * multiplier, 360,
-                                   640 + x_dist * multiplier, 360, 250)
+                        Utils.swipe(640 - x_dist * multiplier, 360,
+                                    640 + x_dist * multiplier, 360, 250)
             x_dist *= 1.5
             y_dist *= 1.5
         return None
