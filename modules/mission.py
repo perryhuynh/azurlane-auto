@@ -1,4 +1,4 @@
-from util.utils import Utils
+from util.utils import Utils, Region
 
 
 class MissionModule(object):
@@ -13,6 +13,7 @@ class MissionModule(object):
 
     def mission_logic_wrapper(self):
         if (Utils.find_and_touch('mission_complete')):
+            Logger.log_msg('Checking for completed missions.')
             self.stats.increment_missions_done()
             Utils.script_sleep(0.5)
             while Utils.find_and_touch('collect_mission'):
