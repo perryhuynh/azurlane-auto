@@ -31,7 +31,7 @@ class ALAuto(object):
         if self.config.combat['enabled']:
             self.modules['combat'] = CombatModule(self.config, self.stats)
         if self.config.missions['enabled']:
-            self.modules['mission'] = MissionModule(self.config, self.stats)
+            self.modules['missions'] = MissionModule(self.config, self.stats)
         self.print_stats_check = True
 
     def run_combat_cycle(self):
@@ -51,9 +51,8 @@ class ALAuto(object):
     def run_mission_cycle(self):
         """Method to run the mission cycle
         """
-        if self.modules['mission']:
-            Logger.log_msg('Checking for completed missions.')
-            if self.modules['mission'].mission_logic_wrapper():
+        if self.modules['missions']:
+            if self.modules['missions'].mission_logic_wrapper():
                 self.print_stats_check = True
 
     def print_cycle_stats(self):
