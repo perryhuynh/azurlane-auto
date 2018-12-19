@@ -116,7 +116,11 @@ class CombatModule(object):
             array: An array containing the x and y coordinates of the fleet's
             current location.
         """
-        coords = Utils.find('combat_fleet_marker', 0.88)
+        coords = None
+        similarity = 0.9
+        while coords is None:
+            coords = Utils.find('combat_fleet_marker', similarity)
+            similarity -= 0.01
         return [coords.x + 10, coords.y + 175]
 
     def get_closest_enemy(self, blacklist=[]):
@@ -175,6 +179,7 @@ class CombatModule(object):
                             current_location[0] - (2 * x_dist * multiplier))
                         Utils.swipe(640 - x_dist * multiplier, 360,
                                     640 + x_dist * multiplier, 360, 250)
+                self.need_to_refocus = True
             x_dist *= 1.5
             y_dist *= 1.5
         return None
@@ -213,19 +218,19 @@ class CombatModule(object):
         Logger.log_msg('Starting battle')
         while (Utils.exists('combat_auto_enabled')):
             Utils.touch_randomly(self.region['battle_start'])
+            if Utils.wait_for_exist('combat_notification_sort', 3):
+                return False
         Utils.script_sleep(30)
-        while not Utils.exists('combat_battle_complete', 0.8):
-            Utils.script_sleep(3)
-        Logger.log_msg('Battle complete, clicking through rewards.')
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             if Utils.find_and_touch('confirm'):
-                pass
+                Logger.log_msg('Locked new ship.')
             else:
-                Utils.touch_randomly(Region(0, 0, 300, 300))
+                Utils.touch_randomly(Region(0, 100, 150, 150))
                 Utils.script_sleep()
         Logger.log_msg('Battle complete.')
         if Utils.wait_and_touch('confirm', 3):
             Logger.log_msg('Dismissing urgent notification.')
+        return True
 
     def clear_trash(self):
         """Finds trash mobs closest to the current fleet location and battles
@@ -259,37 +264,42 @@ class CombatModule(object):
                     tries += 1
                     Utils.script_sleep(5)
             if self.conduct_prebattle_check():
-                self.conduct_battle()
-                self.need_to_refocus = True
-            else:
-                self.resume_previous_sortie = True
-                while not (Utils.exists('home_menu_build')):
-                    Utils.touch_randomly(self.region['nav_back'])
-                return False
+                if self.conduct_battle():
+                    self.need_to_refocus = True
+                else:
+                    self.resume_previous_sortie = True
+                    while not (Utils.exists('home_menu_build')):
+                        Utils.touch_randomly(self.region['nav_back'])
+                    # Add logic for retirement here?
+                    return False
             if self.avoided_ambush:
                 self.kills_needed -= 1
             Logger.log_msg('Kills left for boss to spawn: {}'
                            .format(self.kills_needed))
+        Utils.script_sleep(1)
         return True
 
     def clear_boss(self):
         """Finds the boss and battles it
         """
         while not Utils.exists('combat_battle_start'):
-            boss = Utils.scroll_find('combat_enemy_boss', 250, 175, 0.7)
-            if boss is None:
+            boss = None
+            similarity = 0.8
+            while boss is None:
                 boss = Utils.scroll_find(
-                    'combat_enemy_boss_alt', 250, 175, 0.7)
-            if boss is not None:
-                Logger.log_msg('Boss found at: {}'.format([boss.x, boss.y]))
-                Logger.log_msg('Focusing on boss')
-                Utils.swipe(boss.x, boss.y, 640, 360, 250)
-                boss = Utils.scroll_find(
-                    'combat_enemy_boss_alt', 250, 175, 0.7)
-                # Click slightly above boss to be able to click on it in case
-                # the boss is obstructed by another fleet or enemy
-                boss_coords = [boss.x + 50, boss.y - 15]
-                Utils.touch(boss_coords)
+                    'combat_enemy_boss_alt', 250, 175, similarity)
+                similarity -= 0.015
+            Logger.log_msg('Boss found at: {}'.format([boss.x, boss.y]))
+            Logger.log_msg('Focusing on boss')
+            Utils.swipe(boss.x, boss.y, 640, 360, 250)
+            boss = None
+            while boss is None:
+                boss = Utils.find('combat_enemy_boss_alt', similarity)
+                similarity -= 0.015
+            # Click slightly above boss to be able to click on it in case
+            # the boss is obstructed by another fleet or enemy
+            boss_coords = [boss.x + 50, boss.y - 15]
+            Utils.touch(boss_coords)
             if Utils.wait_for_exist('combat_unable', 3):
                 boss = Utils.scroll_find('combat_enemy_boss_alt',
                                          250, 175, 0.75)
@@ -322,9 +332,8 @@ class CombatModule(object):
         """
         Logger.log_msg('Refocusing fleet.')
         self.switch_fleet()
-        Utils.script_sleep(1)
+        Utils.script_sleep(2)
         self.switch_fleet()
-        Utils.script_sleep(1)
 
     def check_morale(self):
         """Method to multithread the detection of morale states of the fleet.
