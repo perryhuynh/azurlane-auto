@@ -1,3 +1,4 @@
+from util.logger import Logger
 from util.utils import Utils, Region
 
 
@@ -14,9 +15,9 @@ class MissionModule(object):
     def mission_logic_wrapper(self):
         if (Utils.find_and_touch('mission_complete')):
             Logger.log_msg('Checking for completed missions.')
-            self.stats.increment_missions_done()
             Utils.script_sleep(0.5)
             while Utils.find_and_touch('collect_mission'):
+                self.stats.increment_missions_done()
                 Utils.touch_randomly()
             Utils.touch_randomly(Region(12, 8, 45, 30))
             return True

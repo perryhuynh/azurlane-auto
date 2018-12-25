@@ -6,6 +6,7 @@ from util.adb import Adb
 from util.config import Config
 from util.logger import Logger
 from util.stats import Stats
+from util.utils import Utils
 
 
 class ALAuto(object):
@@ -64,9 +65,6 @@ class ALAuto(object):
 
     def run_test(self):
         pass
-        # coords = Utils.find_all('combat_enemy_fleet', 0.88)
-        # Logger.log_msg(coords)
-        # exit()
 
 
 # check run-time args

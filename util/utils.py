@@ -129,6 +129,7 @@ class Utils(object):
             coords (array): An array containing the x and y coordinate of
                 where to touch the screen
         """
+        cls.script_sleep()
         Adb.shell("input tap {} {}".format(coords[0], coords[1]))
         cls.script_sleep()
 
@@ -392,3 +393,18 @@ class Utils(object):
             index of where it is in the list of coordinates
         """
         return spatial.KDTree(coords).query(coord)
+
+    @staticmethod
+    def in_region(coord, region):
+        """Checks if the specified coordinate is in the specified region
+
+        Args:
+            coord (array): [description]
+            region (Region): Region object containing the starting x/y
+                coordinate and width/height of the region
+
+        Returns:
+            bool: True if the coordinate is within the region
+        """
+        return (coord[0] in range(region.x, region.x + region.w) and
+                coord[1] in range(region.y, region.y + region.h))

@@ -34,6 +34,7 @@ class CombatModule(object):
             'map_go_2': Region(925, 485, 170, 45),
             'battle_start': Region(1000, 610, 125, 50),
             'toggle_autobattle': Region(150, 80, 65, 20),
+            'combat_battle_confirm': Region(1100, 590, 2, 30),
             'switch_fleet': Region(850, 650, 180, 40)
         }
 
@@ -118,10 +119,13 @@ class CombatModule(object):
         """
         coords = None
         similarity = 0.9
-        while coords is None:
+        while coords is None or similarity > 0.85:
             coords = Utils.find('combat_fleet_marker', similarity)
             similarity -= 0.01
-        return [coords.x + 10, coords.y + 175]
+        if coords:
+            return [coords.x + 10, coords.y + 175]
+        else:
+            return None
 
     def get_closest_enemy(self, blacklist=[]):
         """Method to get the enemy closest to the fleet's current location. Note
@@ -142,44 +146,65 @@ class CombatModule(object):
         swipes = [['n', 1.0], ['e', 1.0], ['s', 1.5], ['w', 1.5]]
         closest = None
         while closest is None:
+            current_location = None
             if self.need_to_refocus:
                 self.refocus_fleet()
-            current_location = self.get_fleet_location()
+            if not current_location:
+                current_location = self.get_fleet_location()
             for swipe in swipes:
                 enemies = Utils.find_all('combat_enemy_fleet', 0.88)
                 if enemies:
+                    # Remove enemy coords if they are either under the add
+                    # oil/coins/gems buttons or emergency repair button
+                    blacklisted_regions = [
+                        Region(660, 0, 610, 75), Region(1225, 310, 55, 120)]
+                    for enemy in enemies:
+                        for region in blacklisted_regions:
+                            try:
+                                if Utils.in_region(enemy, region):
+                                    enemies.remove(enemy)
+                            except IndexError:
+                                pass
+                if enemies:
                     for coord in blacklist:
-                        enemies.remove(coord)
-                    Logger.log_msg('Current location is: {}'
-                                   .format(current_location))
+                        if coord in enemies:
+                            enemies.remove(coord)
+                    Logger.log_msg(
+                        'Current location is: {}'.format(current_location))
                     Logger.log_msg('Enemies found at: {}'.format(enemies))
                     closest = enemies[Utils.find_closest(
-                                      enemies, current_location)[1]]
-                    Logger.log_msg('Closest enemy is at {}'.format(closest))
-                    return [closest[0], closest[1] - 10]
+                        enemies, current_location)[1]]
+                    Logger.log_msg(
+                        'Closest enemy is at {}'.format(closest))
+                    self.need_to_refocus = True
+                    return closest
                 else:
+                    self.need_to_refocus = False
                     direction, multiplier = swipe[0], swipe[1]
                     if direction == 'n':
                         current_location[1] = (
-                            current_location[1] + (2 * y_dist * multiplier))
+                            current_location[1] + (
+                                2 * y_dist * multiplier))
                         Utils.swipe(640, 360 - y_dist * multiplier,
                                     640, 360 + y_dist * multiplier, 250)
                     elif direction == 's':
                         current_location[1] = (
-                            current_location[1] - (2 * y_dist * multiplier))
+                            current_location[1] - (
+                                2 * y_dist * multiplier))
                         Utils.swipe(640, 360 + y_dist * multiplier,
                                     640, 360 - y_dist * multiplier, 250)
                     elif direction == 'e':
                         current_location[0] = (
-                            current_location[0] + (2 * x_dist * multiplier))
+                            current_location[0] + (
+                                2 * x_dist * multiplier))
                         Utils.swipe(640 + x_dist * multiplier, 360,
                                     640 - x_dist * multiplier, 360, 250)
                     elif direction == 'w':
                         current_location[0] = (
-                            current_location[0] - (2 * x_dist * multiplier))
+                            current_location[0] - (
+                                2 * x_dist * multiplier))
                         Utils.swipe(640 - x_dist * multiplier, 360,
                                     640 + x_dist * multiplier, 360, 250)
-                self.need_to_refocus = True
             x_dist *= 1.5
             y_dist *= 1.5
         return None
@@ -215,18 +240,19 @@ class CombatModule(object):
         """Method to start the battle and click through the rewards once the
         battle is complete.
         """
-        Logger.log_msg('Starting battle')
         while (Utils.exists('combat_auto_enabled')):
             Utils.touch_randomly(self.region['battle_start'])
             if Utils.wait_for_exist('combat_notification_sort', 3):
                 return False
+        Logger.log_msg('Starting battle')
         Utils.script_sleep(30)
-        while not Utils.find_and_touch('combat_battle_confirm', 0.85):
+        while not Utils.exists('combat_battle_complete', 0.8):
+            Utils.script_sleep(3)
+        while not Utils.find_and_touch('combat_battle_confirm', 0.9):
             if Utils.find_and_touch('confirm'):
                 Logger.log_msg('Locked new ship.')
-            else:
-                Utils.touch_randomly(Region(0, 100, 150, 150))
-                Utils.script_sleep()
+                Utils.script_sleep(1)
+            Utils.touch_randomly(Region(30, 100, 200, 50))
         Logger.log_msg('Battle complete.')
         if Utils.wait_and_touch('confirm', 3):
             Logger.log_msg('Dismissing urgent notification.')
@@ -237,8 +263,6 @@ class CombatModule(object):
         them until the boss spawns
         """
         while self.kills_needed > 0:
-            blacklist = []
-            tries = 0
             if self.resume_previous_sortie:
                 self.resume_previous_sortie = False
                 Utils.find_and_touch('combat_attack')
@@ -254,15 +278,24 @@ class CombatModule(object):
                 elif Utils.find_and_touch('combat_items_received'):
                     pass
                 else:
-                    enemy_coord = self.get_closest_enemy()
-                    if tries > 2:
-                        blacklist.append(enemy_coord)
-                        enemy_coord = self.get_closest_enemy(blacklist)
-                    Logger.log_msg('Navigating to enemy fleet at {}'
-                                   .format(enemy_coord))
-                    Utils.touch(enemy_coord)
-                    tries += 1
+                    enemy = self.get_closest_enemy()
+                    fleet = self.get_fleet_location()
+                    blacklist = []
+                    tries = 0
+                    while not self.fleet_has_moved(fleet):
+                        if tries > 2:
+                            Logger.log_msg(
+                                'Unable to navigate to {} '.format(enemy) +
+                                ' after 3 tries. Adding to blacklist.')
+                            blacklist.append(enemy)
+                            enemy = self.get_closest_enemy(blacklist)
+                            tries = 0
+                        Logger.log_msg('Navigating to enemy fleet at {}'
+                                       .format(enemy))
+                        Utils.touch([enemy[0], enemy[1] - 10])
+                        tries += 1
                     Utils.script_sleep(5)
+            Logger.log_msg('Conducting pre-battle check')
             if self.conduct_prebattle_check():
                 if self.conduct_battle():
                     self.need_to_refocus = True
@@ -301,16 +334,24 @@ class CombatModule(object):
             boss_coords = [boss.x + 50, boss.y - 15]
             Utils.touch(boss_coords)
             if Utils.wait_for_exist('combat_unable', 3):
-                boss = Utils.scroll_find('combat_enemy_boss_alt',
-                                         250, 175, 0.75)
+                while boss is None:
+                    boss = Utils.find('combat_enemy_boss_alt', similarity)
+                    similarity -= 0.015
                 enemies = Utils.find_all('combat_enemy_fleet', 0.89)
-                enemies.remove(boss)
-                closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
-                Utils.find_and_touch(closest_to_boss)
-                if Utils.wait_for_exist('combat_unable', 3):
-                    Utils.find_and_touch(self.get_closest_enemy())
-                    if Utils.wait_for_exist('combat_battle_start', 3):
-                        self.conduct_battle()
+                try:
+                    enemies.remove(
+                        enemies[Utils.find_closest(
+                            enemies, [boss.x, boss.y])[1]])
+                    if enemies:
+                        closest_to_boss = enemies[
+                            Utils.find_closest(enemies, boss)[1]]
+                        Utils.find_and_touch(closest_to_boss)
+                        if Utils.wait_for_exist('combat_unable', 3):
+                            Utils.find_and_touch(self.get_closest_enemy())
+                            if Utils.wait_for_exist('combat_battle_start', 3):
+                                self.conduct_battle()
+                except Exception:
+                    pass
             else:
                 Utils.script_sleep(5)
                 if Utils.find_and_touch('combat_evade'):
@@ -332,7 +373,7 @@ class CombatModule(object):
         """
         Logger.log_msg('Refocusing fleet.')
         self.switch_fleet()
-        Utils.script_sleep(2)
+        Utils.script_sleep(3)
         self.switch_fleet()
 
     def check_morale(self):
@@ -359,3 +400,17 @@ class CombatModule(object):
             True
             if (Utils.exists('morale_{}'.format(status)))
             else False)
+
+    def fleet_has_moved(self, coord):
+        """Checks to see if the fleet as actually moved, used in the case where
+        the script is trying to click on an enemy that is a false positive
+
+        Args:
+            coord (array): An array containing the x and y coordinates of the
+            current fleet location
+        """
+        current_location = self.get_fleet_location()
+        if current_location:
+            return Utils.find_closest([current_location], coord)[0] > 15.0
+        else:
+            return True
