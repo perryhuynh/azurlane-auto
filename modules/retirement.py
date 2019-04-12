@@ -22,15 +22,17 @@ class RetirementModule(object):
         the entire action filtering and retiring ships
         """
         if self.need_to_retire:
+            Utils.update_screen()
             while not (Utils.find_and_touch('home_menu_build')):
                 Utils.touch_randomly(Region(12, 8, 45, 30))
-            Utils.wait_and_touch('build_menu_retire', 2)
-            Utils.script_sleep(1)
+                Utils.update_screen()
+            Utils.update_screen()
+            Utils.find_and_touch('build_menu_retire')
             self.set_filters()
-            Utils.script_sleep(1)
             done = False
             while not done:
                 self.select_ships()
+                Utils.update_screen()
                 if (Utils.exists('retire_none_selected')):
                     done = True
                 # Click confirm button
@@ -53,20 +55,27 @@ class RetirementModule(object):
         """Clicks through the dialogs for retiring ships
         """
         Utils.find_and_touch('retire_confirm', 0.7)
+        Utils.update_screen()
         Utils.find_and_touch('retire_confirm', 0.7)
+        Utils.update_screen()
         Utils.find_and_touch('combat_items_received', 0.7)
+        Utils.update_screen()
         Utils.find_and_touch('retire_confirm', 0.7)
+        Utils.update_screen()
         Utils.find_and_touch('retire_disassemble', 0.7)
+        Utils.update_screen()
         Utils.find_and_touch('combat_items_received', 0.7)
 
     def set_filters(self):
         """Filters the ship list to only show rare and commmon ships
         """
         Utils.touch_randomly(Region(1090, 15, 150, 40))
-        Utils.wait_for_exist('ship_filter_confirm', 1)
         Utils.touch_randomly(Region(300, 570, 100, 20))
+        Utils.update_screen()
         Utils.find_and_touch('ship_filter_rarity_common')
+        Utils.update_screen()
         Utils.find_and_touch('ship_filter_rarity_rare')
+        Utils.update_screen()
         Utils.find_and_touch('ship_filter_confirm')
 
     def need_to_retire(self):

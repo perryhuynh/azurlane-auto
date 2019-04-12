@@ -72,7 +72,8 @@ class Config(object):
             'Combat', 'AltClearFleet')
         self.combat['boss_fleet'] = config.getboolean('Combat', 'BossFleet')
         self.combat['kills_needed'] = config.getint('Combat', 'KillsNeeded')
-        self.combat['retire_cycle'] = config.getint('Combat', 'Retire_cycle')
+        self.combat['retire_cycle'] = config.getint('Combat', 'RetireCycle')
+        self.combat['two_fleet'] = config.getboolean('Combat', 'TwoFleet')
 
     def validate(self):
         def try_cast_to_int(val):

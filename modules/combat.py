@@ -34,7 +34,8 @@ class CombatModule(object):
             'map_go_2': Region(975, 585, 170, 45),
             'battle_start': Region(1000, 610, 125, 50),
             'toggle_autobattle': Region(150, 80, 65, 20),
-            'switch_fleet': Region(850, 650, 180, 40)
+            'switch_fleet': Region(850, 650, 180, 40),
+            'unable_submarine': Region(1100, 500, 50, 30)
         }
 
     def combat_logic_wrapper(self):
@@ -54,15 +55,20 @@ class CombatModule(object):
                 if self.hard_mode:
                     Utils.update_screen()
                     Utils.find_and_touch('map_menu_hard')
+                Utils.script_sleep()
                 Utils.update_screen()
                 Utils.find_and_touch('map_{}'.format(self.sortie_map), 0.85)
                 Utils.touch_randomly(self.region['map_go_1'])
+                Utils.script_sleep()
+                Utils.touch_randomly(self.region['unable_submarine'])
+                Utils.script_sleep()
                 Utils.touch_randomly(self.region['map_go_2'])
                 if self.config.combat['alt_clear_fleet']:
                     Logger.log_msg('Alternate clearing fleet enabled, ' +
                                    'switching to 2nd fleet to clear trash')
                     self.switch_fleet()
                     self.need_to_refocus = False
+                Utils.script_sleep(3)
             # Trash
             if self.clear_trash():
                 # Boss
@@ -142,7 +148,7 @@ class CombatModule(object):
         swipes = [['n', 1.0], ['e', 1.0], ['s', 1.5], ['w', 1.5]]
         closest = None
         while closest is None:
-            if self.need_to_refocus:
+            if self.need_to_refocus and self.config.combat['two_fleet']:
                 self.refocus_fleet()
             Utils.update_screen()
             current_location = self.get_fleet_location()
@@ -207,7 +213,8 @@ class CombatModule(object):
                 if not Utils.exists('combat_auto_enabled'):
                     Logger.log_msg('Enabling auto-battle')
                     Utils.touch_randomly(self.region['toggle_autobattle'])
-                    Utils.touch_randomly(Region(600, 100, 150, 150))
+                    Utils.update_screen()
+                    Utils.find_and_touch("confirm")
                     Utils.update_screen()
                 self.combat_auto_enabled = True
         return ok
@@ -219,14 +226,16 @@ class CombatModule(object):
         Logger.log_msg('Starting battle')
         Utils.find_and_touch('combat_battle_start')
         Utils.update_screen()
-        while (Utils.exists('combat_auto_enabled')):
+        while (not Utils.exists('in_battle')):
             Utils.update_screen()
-        Utils.update_screen()
-        Utils.find_and_touch('continue')
-        Utils.update_screen()
-        Utils.find_and_touch('combat_items_received')
-        Utils.update_screen()
-        Utils.find_and_touch('continue')
+        while (Utils.exists('in_battle')):
+            Utils.update_screen()
+        Utils.script_sleep()
+        Utils.touch_randomly(Region(0,0,300,300))
+        Utils.script_sleep()
+        Utils.touch_randomly(Region(0,0,300,300))
+        Utils.script_sleep(2)
+        Utils.touch_randomly(Region(0,0,300,300))
         Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             if Utils.find_and_touch('confirm'):
@@ -256,7 +265,7 @@ class CombatModule(object):
                 if Utils.find_and_touch('combat_evade'):
                     Utils.script_sleep(2)
                     Utils.update_screen()
-                    if Utils.exist('combat_battle_start'):
+                    if Utils.exists('combat_battle_start'):
                         self.avoided_ambush = False
                     else:
                         Logger.log_msg('Successfully avoided ambush.')
@@ -272,6 +281,7 @@ class CombatModule(object):
                     Utils.touch(enemy_coord)
                     tries += 1
                     Utils.script_sleep(3)
+                    Utils.update_screen()
             if self.conduct_prebattle_check():
                 self.conduct_battle()
                 self.need_to_refocus = True
@@ -305,26 +315,25 @@ class CombatModule(object):
             boss_coords = [boss.x + 25, boss.y + 5]
             Utils.touch(boss_coords)
             Utils.update_screen()
-            if Utils.exist('combat_unable'):
+            if Utils.exists('combat_unable'):
                 boss = Utils.scroll_find('combat_enemy_boss',
                                          250, 175, 0.75)
                 enemies = Utils.find_all('combat_enemy_fleet', 0.89)
-                enemies.remove(boss)
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
                 Utils.find_and_touch(closest_to_boss)
                 Utils.update_screen()
-                if Utils.exist('combat_unable'):
+                if Utils.exists('combat_unable'):
                     Utils.find_and_touch(self.get_closest_enemy())
                     Utils.script_sleep(3)
                     Utils.update_screen()
-                    if Utils.exist('combat_battle_start'):
+                    if Utils.exists('combat_battle_start'):
                         self.conduct_battle()
             else:
                 Utils.script_sleep(3)
                 Utils.update_screen()
                 if Utils.find_and_touch('combat_evade'):
-                    Utils.sleep(2)
-                    if Utils.exist('combat_battle_start'):
+                    Utils.script_sleep()
+                    if Utils.exists('combat_battle_start'):
                         self.conduct_battle()
                         self.refocus_fleet()
                 elif Utils.find_and_touch('combat_items_received'):
