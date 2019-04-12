@@ -20,11 +20,11 @@ class CombatModule(object):
         self.next_combat_time = datetime.now()
         self.resume_previous_sortie = False
         self.kills_needed = 0
-        self.combat_auto_enabled = True
+        self.combat_auto_enabled = False
         self.hard_mode = self.config.combat['hard_mode']
         self.sortie_map = self.config.combat['map']
         self.event_map = self.sortie_map.split('-')[0] == 'E'
-        self.need_to_refocus = False
+        self.need_to_refocus = True
         self.avoided_ambush = True
         self.region = {
             'nav_back': Region(12, 8, 45, 30),
@@ -47,19 +47,17 @@ class CombatModule(object):
         if self.check_need_to_sortie():
             Logger.log_msg('Navigating to map.')
             Utils.touch_randomly(self.region['home_menu_attack'])
-            Utils.script_sleep(1)
             if not self.resume_previous_sortie:
                 self.kills_needed = self.config.combat['kills_needed']
                 if self.event_map:
                     Utils.touch_randomly(self.region['event_map'])
                 if self.hard_mode:
+                    Utils.update_screen()
                     Utils.find_and_touch('map_menu_hard')
-                Utils.wait_and_touch('map_{}'.format(self.sortie_map), 5, 0.85)
-                Utils.script_sleep()
+                Utils.update_screen()
+                Utils.find_and_touch('map_{}'.format(self.sortie_map), 0.85)
                 Utils.touch_randomly(self.region['map_go_1'])
-                Utils.script_sleep(1)
                 Utils.touch_randomly(self.region['map_go_2'])
-                Utils.script_sleep(3)
                 if self.config.combat['alt_clear_fleet']:
                     Logger.log_msg('Alternate clearing fleet enabled, ' +
                                    'switching to 2nd fleet to clear trash')
@@ -75,8 +73,10 @@ class CombatModule(object):
                 self.stats.increment_combat_done()
                 self.next_combat_time = datetime.now()
                 Logger.log_success('Sortie complete. Navigating back home.')
+                Utils.update_screen()
                 while not (Utils.exists('home_menu_build')):
                     Utils.touch_randomly(self.region['nav_back'])
+                    Utils.update_screen()
                 self.set_next_combat_time({'seconds': 10})
             return True
         return False
@@ -120,7 +120,7 @@ class CombatModule(object):
         similarity = 0.9
         while coords is None:
             coords = Utils.find('combat_fleet_marker', similarity)
-            similarity -= 0.01
+            similarity -= 0.05
         return [coords.x + 10, coords.y + 175]
 
     def get_closest_enemy(self, blacklist=[]):
@@ -144,6 +144,7 @@ class CombatModule(object):
         while closest is None:
             if self.need_to_refocus:
                 self.refocus_fleet()
+            Utils.update_screen()
             current_location = self.get_fleet_location()
             for swipe in swipes:
                 enemies = Utils.find_all('combat_enemy_fleet', 0.7)
@@ -192,6 +193,7 @@ class CombatModule(object):
             bool: True if it is ok to proceed with the battle
         """
         ok = True
+        Utils.update_screen()
         fleet_morale = self.check_morale()
         if fleet_morale['sad']:
             self.set_next_combat_time({'hours': 2})
@@ -205,9 +207,8 @@ class CombatModule(object):
                 if not Utils.exists('combat_auto_enabled'):
                     Logger.log_msg('Enabling auto-battle')
                     Utils.touch_randomly(self.region['toggle_autobattle'])
-                    Utils.script_sleep(0.5)
                     Utils.touch_randomly(Region(600, 100, 150, 150))
-                    Utils.script_sleep(2)
+                    Utils.update_screen()
                 self.combat_auto_enabled = True
         return ok
 
@@ -217,21 +218,23 @@ class CombatModule(object):
         """
         Logger.log_msg('Starting battle')
         Utils.find_and_touch('combat_battle_start')
+        Utils.update_screen()
         while (Utils.exists('combat_auto_enabled')):
-            Utils.touch_randomly(self.region['battle_start'])
-            if Utils.wait_for_exist('combat_notification_sort', 3):
-                return False
-        Utils.wait_and_touch('continue',1)
+            Utils.update_screen()
+        Utils.update_screen()
+        Utils.find_and_touch('continue')
+        Utils.update_screen()
         Utils.find_and_touch('combat_items_received')
-        Utils.wait_and_touch('continue',1)
+        Utils.update_screen()
+        Utils.find_and_touch('continue')
+        Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             if Utils.find_and_touch('confirm'):
                 Logger.log_msg('Locked new ship.')
-            else:
-                Utils.touch_randomly(Region(0, 100, 150, 150))
-                Utils.script_sleep()
+            Utils.update_screen()
         Logger.log_msg('Battle complete.')
-        if Utils.wait_and_touch('confirm', 3):
+        Utils.update_screen()
+        if Utils.find_and_touch('confirm'):
             Logger.log_msg('Dismissing urgent notification.')
         return True
 
@@ -244,13 +247,16 @@ class CombatModule(object):
             tries = 0
             if self.resume_previous_sortie:
                 self.resume_previous_sortie = False
+                Utils.update_screen()
                 Utils.find_and_touch('combat_attack')
-                Utils.script_sleep(2)
             else:
                 self.avoided_ambush = True
             while not Utils.exists('combat_battle_start'):
+                Utils.update_screen()
                 if Utils.find_and_touch('combat_evade'):
-                    if Utils.wait_for_exist('combat_battle_start', 3):
+                    Utils.script_sleep(2)
+                    Utils.update_screen()
+                    if Utils.exist('combat_battle_start'):
                         self.avoided_ambush = False
                     else:
                         Logger.log_msg('Successfully avoided ambush.')
@@ -265,21 +271,14 @@ class CombatModule(object):
                                    .format(enemy_coord))
                     Utils.touch(enemy_coord)
                     tries += 1
-                    Utils.script_sleep(5)
+                    Utils.script_sleep(3)
             if self.conduct_prebattle_check():
-                if self.conduct_battle():
-                    self.need_to_refocus = True
-                else:
-                    self.resume_previous_sortie = True
-                    while not (Utils.exists('home_menu_build')):
-                        Utils.touch_randomly(self.region['nav_back'])
-                    # Add logic for retirement here?
-                    return False
+                self.conduct_battle()
+                self.need_to_refocus = True
             if self.avoided_ambush:
                 self.kills_needed -= 1
             Logger.log_msg('Kills left for boss to spawn: {}'
                            .format(self.kills_needed))
-        Utils.script_sleep(1)
         return True
 
     def clear_boss(self):
@@ -289,6 +288,7 @@ class CombatModule(object):
             boss = None
             similarity = 0.8
             while boss is None:
+                Utils.update_screen()
                 boss = Utils.scroll_find(
                     'combat_enemy_boss', 250, 175, similarity)
                 similarity -= 0.015
@@ -297,27 +297,34 @@ class CombatModule(object):
             Utils.swipe(boss.x, boss.y, 640, 360, 250)
             boss = None
             while boss is None:
+                Utils.update_screen()
                 boss = Utils.find('combat_enemy_boss', similarity)
                 similarity -= 0.015
             # Click slightly above boss to be able to click on it in case
             # the boss is obstructed by another fleet or enemy
             boss_coords = [boss.x + 25, boss.y + 5]
             Utils.touch(boss_coords)
-            if Utils.wait_for_exist('combat_unable', 3):
+            Utils.update_screen()
+            if Utils.exist('combat_unable'):
                 boss = Utils.scroll_find('combat_enemy_boss',
                                          250, 175, 0.75)
                 enemies = Utils.find_all('combat_enemy_fleet', 0.89)
                 enemies.remove(boss)
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
                 Utils.find_and_touch(closest_to_boss)
-                if Utils.wait_for_exist('combat_unable', 3):
+                Utils.update_screen()
+                if Utils.exist('combat_unable'):
                     Utils.find_and_touch(self.get_closest_enemy())
-                    if Utils.wait_for_exist('combat_battle_start', 3):
+                    Utils.script_sleep(3)
+                    Utils.update_screen()
+                    if Utils.exist('combat_battle_start'):
                         self.conduct_battle()
             else:
-                Utils.script_sleep(5)
+                Utils.script_sleep(3)
+                Utils.update_screen()
                 if Utils.find_and_touch('combat_evade'):
-                    if Utils.wait_for_exist('combat_battle_start', 3):
+                    Utils.sleep(2)
+                    if Utils.exist('combat_battle_start'):
                         self.conduct_battle()
                         self.refocus_fleet()
                 elif Utils.find_and_touch('combat_items_received'):
@@ -335,7 +342,6 @@ class CombatModule(object):
         """
         Logger.log_msg('Refocusing fleet.')
         self.switch_fleet()
-        Utils.script_sleep(2)
         self.switch_fleet()
 
     def check_morale(self):

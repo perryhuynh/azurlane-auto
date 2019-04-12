@@ -28,6 +28,7 @@ class Region(object):
 class Utils(object):
 
     DEFAULT_SIMILARITY = 0.95
+    screen = None
 
     @staticmethod
     def multithreader(threads):
@@ -62,21 +63,19 @@ class Utils(object):
             flex = base if flex is None else flex
             time.sleep(uniform(base, base + flex))
 
-    @staticmethod
-    def update_screen():
+    def update_screen(self):
         """Uses ADB to pull a screenshot of the device and then read it via CV2
         and then returns the read image.
 
         Returns:
             image: A CV2 image object containing the current device screen.
         """
-        decoded = None
-        while decoded is None:
-            decoded = cv2.imdecode(numpy.fromstring(Adb.exec_out(r"screencap -p | sed 's/\r\n$/\n/'"),dtype=numpy.uint8),0)
-        return decoded
+        self.screen = None
+        while self.screen is None:
+            self.screen = cv2.imdecode(numpy.fromstring(Adb.exec_out(r"screencap -p | sed 's/\r\n$/\n/'"),dtype=numpy.uint8),0)
+        return self.screen
 
-    @classmethod
-    def find(cls, image, similarity=DEFAULT_SIMILARITY):
+    def find(self, image, similarity=DEFAULT_SIMILARITY):
         """Finds the specified image on the screen
 
         Args:
@@ -87,17 +86,15 @@ class Utils(object):
         Returns:
             Region: region object containing the location and size of the image
         """
-        screen = cls.update_screen()
         template = cv2.imread('assets/{}.png'.format(image), 0)
         width, height = template.shape[::-1]
-        match = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+        match = cv2.matchTemplate(self.screen, template, cv2.TM_CCOEFF_NORMED)
         value, location = cv2.minMaxLoc(match)[1], cv2.minMaxLoc(match)[3]
         if (value >= similarity):
             return Region(location[0], location[1], width, height)
         return None
 
-    @classmethod
-    def find_all(cls, image, similarity=DEFAULT_SIMILARITY):
+    def find_all(self, image, similarity=DEFAULT_SIMILARITY):
         """Finds all locations of the image on the screen
 
         Args:
@@ -108,18 +105,15 @@ class Utils(object):
         Returns:
             array: Array of all coordinates where the image appears
         """
-        screen = cls.update_screen()
         template = cv2.imread('assets/{}.png'.format(image), 0)
-        width, height = template.shape[::-1]
-        match = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+        match = cv2.matchTemplate(self.screen, template, cv2.TM_CCOEFF_NORMED)
         locations = numpy.where(match >= similarity)
         if locations:
-            return cls.filter_similar_coords(
+            return self.filter_similar_coords(
                 list(zip(locations[1], locations[0])))
         return None
 
-    @classmethod
-    def touch(cls, coords):
+    def touch(self, coords):
         """Sends an input command to touch the device screen at the specified
         coordinates via ADB
 
@@ -128,22 +122,20 @@ class Utils(object):
                 where to touch the screen
         """
         Adb.shell("input tap {} {}".format(coords[0], coords[1]))
-        cls.script_sleep()
+        self.script_sleep()
 
-    @classmethod
-    def touch_randomly(cls, region=Region(0, 0, 1280, 720)):
+    def touch_randomly(self, region=Region(0, 0, 1280, 720)):
         """Touches a random coordinate in the specified region
 
         Args:
             region (Region, optional): Defaults to Region(0, 0, 1280, 720).
                 specified region in which to randomly touch the screen
         """
-        x = cls.random_coord(region.x, region.x + region.w)
-        y = cls.random_coord(region.y, region.y + region.h)
-        cls.touch([x, y])
+        x = self.random_coord(region.x, region.x + region.w)
+        y = self.random_coord(region.y, region.y + region.h)
+        self.touch([x, y])
 
-    @classmethod
-    def swipe(cls, x1, y1, x2, y2, ms):
+    def swipe(self, x1, y1, x2, y2, ms):
         """Sends an input command to swipe the device screen between the
         specified coordinates via ADB
 
@@ -155,9 +147,9 @@ class Utils(object):
             ms (int): Duration in ms of swipe.
         """
         Adb.shell("input swipe {} {} {} {} {}".format(x1, y1, x2, y2, ms))
+        self.update_screen()
 
-    @classmethod
-    def find_and_touch(cls, image, similarity=DEFAULT_SIMILARITY):
+    def find_and_touch(self, image, similarity=DEFAULT_SIMILARITY):
         """Finds the image on the screen and touches it if it exists
 
         Args:
@@ -168,14 +160,13 @@ class Utils(object):
         Returns:
             bool: True if the image was found and touched, false otherwise
         """
-        region = cls.find(image, similarity)
+        region = self.find(image, similarity)
         if region is not None:
-            cls.touch_randomly(region)
+            self.touch_randomly(region)
             return True
         return False
 
-    @classmethod
-    def wait_and_touch(cls, image, seconds, similarity=DEFAULT_SIMILARITY):
+    def wait_and_touch(self, image, seconds, similarity=DEFAULT_SIMILARITY):
         """Periodically searches the screen during the specified amount of time
         for the specified image on the screen and touches it
 
@@ -191,12 +182,11 @@ class Utils(object):
         """
         limit = datetime.now() + timedelta(seconds=seconds)
         while (datetime.now() < limit):
-            if cls.find_and_touch(image, similarity):
+            if self.find_and_touch(image, similarity):
                 return True
         return False
 
-    @classmethod
-    def touch_all(cls, image, similarity=DEFAULT_SIMILARITY):
+    def touch_all(self, image, similarity=DEFAULT_SIMILARITY):
         """Finds all locations of the image on the screen and touches them
 
         Args:
@@ -207,10 +197,9 @@ class Utils(object):
         Returns:
             bool: True if any images were touched, false otherwise
         """
-        screen = cls.update_screen()
         template = cv2.imread('assets/{}.png'.format(image), 0)
         width, height = template.shape[::-1]
-        match = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
+        match = cv2.matchTemplate(self.screen, template, cv2.TM_CCOEFF_NORMED)
         locations = numpy.where(match >= similarity)
         if locations:
             for i in range(0, len(locations[0])):
@@ -218,16 +207,15 @@ class Utils(object):
                 x2 = x1 + width
                 y1 = locations[0][i]
                 y2 = y1 + height
-                cls.touch([cls.random_coord(x1, x2),
-                           cls.random_coord(y1, y2)])
-                cls.script_sleep(1)
-                cls.touch_randomly
-                cls.script_sleep(1)
+                self.touch([self.random_coord(x1, x2),
+                           self.random_coord(y1, y2)])
+                self.script_sleep(1)
+                self.touch_randomly
+                self.script_sleep(1)
             return True
         return False
 
-    @classmethod
-    def wait_and_find(cls, image, seconds, similarity=DEFAULT_SIMILARITY):
+    def wait_and_find(self, image, seconds, similarity=DEFAULT_SIMILARITY):
         """Periodically searches the screen during the specified amount of time
         for the specified image on the screen and touches it
 
@@ -244,13 +232,12 @@ class Utils(object):
         """
         limit = datetime.now() + timedelta(seconds=seconds)
         while (datetime.now() < limit):
-            region = cls.find(image, similarity)
+            region = self.find(image, similarity)
             if region is not None:
                 return region
         return None
 
-    @classmethod
-    def scroll_find(cls, image, x_dist, y_dist,
+    def scroll_find(self, image, x_dist, y_dist,
                     similarity=DEFAULT_SIMILARITY):
         """Looks around the screen in a clockwise direction for the image.
 
@@ -267,14 +254,13 @@ class Utils(object):
             [640, 360 + y_dist * 1.5, 640, 360 - y_dist * 1.5, 300],
             [640 - x_dist * 1.5, 360, 640 + x_dist * 1.5, 360, 300]]
         for area in swipe_areas:
-            region = cls.find(image, similarity)
+            region = self.find(image, similarity)
             if region is not None:
                 return region
-            Utils.swipe(area[0], area[1], area[2], area[3], area[4])
+            self.swipe(area[0], area[1], area[2], area[3], area[4])
         return None
 
-    @classmethod
-    def exists(cls, image, similarity=DEFAULT_SIMILARITY):
+    def exists(self, image, similarity=DEFAULT_SIMILARITY):
         """Checks whether the image exists on the screen.
 
         Args:
@@ -285,10 +271,9 @@ class Utils(object):
         Returns:
             bool: True if the image exists on the screen, false otherwise
         """
-        return cls.find(image, similarity) is not None
+        return self.find(image, similarity) is not None
 
-    @classmethod
-    def wait_for_exist(cls, image, duration, similarity=DEFAULT_SIMILARITY):
+    def wait_for_exist(self, image, duration, similarity=DEFAULT_SIMILARITY):
         """Wait for the specified number of seconds for the image to exist on
         the screen.
 
@@ -303,13 +288,12 @@ class Utils(object):
         """
         limit = datetime.now() + timedelta(seconds=duration)
         while (datetime.now() < limit):
-            if cls.exists(image, similarity):
+            if self.exists(image, similarity):
                 return True
         return False
 
-    @classmethod
-    def random_coord(cls, min_val, max_val):
-        """Wrapper method that calls cls._randint() or cls._random_coord() to
+    def random_coord(self, min_val, max_val):
+        """Wrapper method that calls self._randint() or self._random_coord() to
         generate the random coordinate between min_val and max_val, depending
         on which return line is enabled.
 
@@ -320,8 +304,8 @@ class Utils(object):
         Returns:
             int: The generated random number
         """
-        return cls._randint(min_val, max_val)
-        # return cls._randint_gauss(min_val, max_val)
+        return self._randint(min_val, max_val)
+        # return self._randint_gauss(min_val, max_val)
 
     @staticmethod
     def _randint(min_val, max_val):
@@ -357,8 +341,7 @@ class Utils(object):
 
         return int(max(min_val, min(gauss(mu, sigma), max_val)))
 
-    @classmethod
-    def filter_similar_coords(cls, coords):
+    def filter_similar_coords(self, coords):
         """Filters out coordinates that are close to each other.
 
         Args:
@@ -371,7 +354,7 @@ class Utils(object):
         if len(coords) > 0:
             filtered_coords.append(coords[0])
             for coord in coords:
-                if cls.find_closest(filtered_coords, coord)[0] > 10:
+                if self.find_closest(filtered_coords, coord)[0] > 10:
                     filtered_coords.append(coord)
         return filtered_coords
 
