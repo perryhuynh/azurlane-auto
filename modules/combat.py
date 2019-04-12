@@ -20,18 +20,18 @@ class CombatModule(object):
         self.next_combat_time = datetime.now()
         self.resume_previous_sortie = False
         self.kills_needed = 0
-        self.combat_auto_enabled = False
+        self.combat_auto_enabled = True
         self.hard_mode = self.config.combat['hard_mode']
         self.sortie_map = self.config.combat['map']
         self.event_map = self.sortie_map.split('-')[0] == 'E'
-        self.need_to_refocus = True
+        self.need_to_refocus = False
         self.avoided_ambush = True
         self.region = {
             'nav_back': Region(12, 8, 45, 30),
             'home_menu_attack': Region(1000, 365, 180, 60),
             'event_map': Region(1145, 140, 70, 40),
             'map_go_1': Region(875, 465, 115, 35),
-            'map_go_2': Region(925, 485, 170, 45),
+            'map_go_2': Region(975, 585, 170, 45),
             'battle_start': Region(1000, 610, 125, 50),
             'toggle_autobattle': Region(150, 80, 65, 20),
             'switch_fleet': Region(850, 650, 180, 40)
@@ -57,9 +57,9 @@ class CombatModule(object):
                 Utils.wait_and_touch('map_{}'.format(self.sortie_map), 5, 0.85)
                 Utils.script_sleep()
                 Utils.touch_randomly(self.region['map_go_1'])
-                Utils.script_sleep()
+                Utils.script_sleep(1)
                 Utils.touch_randomly(self.region['map_go_2'])
-                Utils.script_sleep(5)
+                Utils.script_sleep(3)
                 if self.config.combat['alt_clear_fleet']:
                     Logger.log_msg('Alternate clearing fleet enabled, ' +
                                    'switching to 2nd fleet to clear trash')
@@ -146,7 +146,7 @@ class CombatModule(object):
                 self.refocus_fleet()
             current_location = self.get_fleet_location()
             for swipe in swipes:
-                enemies = Utils.find_all('combat_enemy_fleet', 0.88)
+                enemies = Utils.find_all('combat_enemy_fleet', 0.7)
                 if enemies:
                     for coord in blacklist:
                         enemies.remove(coord)
@@ -216,11 +216,14 @@ class CombatModule(object):
         battle is complete.
         """
         Logger.log_msg('Starting battle')
+        Utils.find_and_touch('combat_battle_start')
         while (Utils.exists('combat_auto_enabled')):
             Utils.touch_randomly(self.region['battle_start'])
             if Utils.wait_for_exist('combat_notification_sort', 3):
                 return False
-        Utils.script_sleep(30)
+        Utils.wait_and_touch('continue',1)
+        Utils.find_and_touch('combat_items_received')
+        Utils.wait_and_touch('continue',1)
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             if Utils.find_and_touch('confirm'):
                 Logger.log_msg('Locked new ship.')
@@ -287,21 +290,21 @@ class CombatModule(object):
             similarity = 0.8
             while boss is None:
                 boss = Utils.scroll_find(
-                    'combat_enemy_boss_alt', 250, 175, similarity)
+                    'combat_enemy_boss', 250, 175, similarity)
                 similarity -= 0.015
             Logger.log_msg('Boss found at: {}'.format([boss.x, boss.y]))
             Logger.log_msg('Focusing on boss')
             Utils.swipe(boss.x, boss.y, 640, 360, 250)
             boss = None
             while boss is None:
-                boss = Utils.find('combat_enemy_boss_alt', similarity)
+                boss = Utils.find('combat_enemy_boss', similarity)
                 similarity -= 0.015
             # Click slightly above boss to be able to click on it in case
             # the boss is obstructed by another fleet or enemy
-            boss_coords = [boss.x + 50, boss.y - 15]
+            boss_coords = [boss.x + 25, boss.y + 5]
             Utils.touch(boss_coords)
             if Utils.wait_for_exist('combat_unable', 3):
-                boss = Utils.scroll_find('combat_enemy_boss_alt',
+                boss = Utils.scroll_find('combat_enemy_boss',
                                          250, 175, 0.75)
                 enemies = Utils.find_all('combat_enemy_fleet', 0.89)
                 enemies.remove(boss)

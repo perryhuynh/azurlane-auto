@@ -25,6 +25,7 @@ class Config(object):
         self.commissions = {'enabled': False}
         self.combat = {'enabled': False}
         self.missions = {'enabled': False}
+        self.retirement = {'enabled': False}
         self.read()
 
     def read(self):
@@ -38,6 +39,7 @@ class Config(object):
         else:
             self.combat = {'enabled': False}
         self.missions['enabled'] = config.getboolean('Missions', 'Enabled')
+        self.retirement['enabled'] = config.getboolean('Retirement', 'Enabled')
         self.validate()
         if (self.ok and not self.initialized):
             Logger.log_msg("Starting azurlane-auto!")
@@ -70,6 +72,7 @@ class Config(object):
             'Combat', 'AltClearFleet')
         self.combat['boss_fleet'] = config.getboolean('Combat', 'BossFleet')
         self.combat['kills_needed'] = config.getint('Combat', 'KillsNeeded')
+        self.combat['retire_cycle'] = config.getint('Combat', 'Retire_cycle')
 
     def validate(self):
         def try_cast_to_int(val):

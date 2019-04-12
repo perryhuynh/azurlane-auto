@@ -2,6 +2,7 @@ import argparse
 from modules.combat import CombatModule
 from modules.commission import CommissionModule
 from modules.mission import MissionModule
+from modules.retirement import RetirementModule
 from util.adb import Adb
 from util.config import Config
 from util.logger import Logger
@@ -12,7 +13,8 @@ class ALAuto(object):
     modules = {
         'commissions': None,
         'combat': None,
-        'missions': None
+        'missions': None,
+        'retirement': None
     }
 
     def __init__(self, config):
@@ -26,12 +28,13 @@ class ALAuto(object):
         self.config = config
         self.stats = Stats(config)
         if self.config.commissions['enabled']:
-            self.modules['commissions'] = CommissionModule(
-                self.config, self.stats)
+            self.modules['commissions'] = CommissionModule(self.config, self.stats)
         if self.config.combat['enabled']:
             self.modules['combat'] = CombatModule(self.config, self.stats)
         if self.config.missions['enabled']:
             self.modules['missions'] = MissionModule(self.config, self.stats)
+        if self.config.retirement['enabled']:
+            self.modules['retirement'] = RetirementModule(self.config, self.stats)
         self.print_stats_check = True
 
     def run_combat_cycle(self):
@@ -53,6 +56,13 @@ class ALAuto(object):
         """
         if self.modules['missions']:
             if self.modules['missions'].mission_logic_wrapper():
+                self.print_stats_check = True
+
+    def run_retirement_cycle(self):
+        """Method to run the retirement cycle
+        """
+        if self.modules['retirement']:
+            if self.modules['retirement'].retirement_logic_wrapper():
                 self.print_stats_check = True
 
     def print_cycle_stats(self):
@@ -94,5 +104,6 @@ while True:
     script.run_test()
     script.run_commission_cycle()
     script.run_combat_cycle()
+    script.run_retirement_cycle()
     script.run_mission_cycle()
     script.print_cycle_stats()

@@ -1,4 +1,5 @@
 import subprocess
+from util.logger import Logger
 
 
 class Adb(object):
@@ -15,6 +16,8 @@ class Adb(object):
         """Starts the ADB server
         """
         cmd = ['adb', 'start-server']
+        subprocess.call(cmd)
+        cmd = ['adb', 'connect', '127.0.0.1:7555']
         subprocess.call(cmd)
 
     @staticmethod
@@ -35,7 +38,7 @@ class Adb(object):
             tuple: A tuple containing stdoutdata and stderrdata
         """
         cmd = ['adb', 'exec-out'] + args.split(' ')
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         return process.communicate()[0]
 
     @staticmethod
@@ -46,4 +49,4 @@ class Adb(object):
             args (string): Command to execute.
         """
         cmd = ['adb', 'shell'] + args.split(' ')
-        subprocess.call(cmd)
+        subprocess.call(cmd, shell=True)

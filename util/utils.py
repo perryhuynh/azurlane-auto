@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from random import uniform, gauss, randint
 from scipy import spatial
 from util.adb import Adb
-
+from util.logger import Logger
 
 class Region(object):
     x, y, w, h = 0, 0, 0, 0
@@ -57,7 +57,7 @@ class Utils(object):
                 to sleep for.
         """
         if base is None:
-            time.sleep(uniform(0.3, 0.7))
+            time.sleep(uniform(0.4, 0.7))
         else:
             flex = base if flex is None else flex
             time.sleep(uniform(base, base + flex))
@@ -72,9 +72,7 @@ class Utils(object):
         """
         decoded = None
         while decoded is None:
-            decoded = cv2.imdecode(
-                numpy.fromstring(
-                    Adb.exec_out('screencap -p'), dtype=numpy.uint8), 0)
+            decoded = cv2.imdecode(numpy.fromstring(Adb.exec_out(r"screencap -p | sed 's/\r\n$/\n/'"),dtype=numpy.uint8),0)
         return decoded
 
     @classmethod
