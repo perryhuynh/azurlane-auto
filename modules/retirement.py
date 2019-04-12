@@ -73,9 +73,7 @@ class RetirementModule(object):
         Utils.touch_randomly(Region(300, 570, 100, 20))
         Utils.update_screen()
         Utils.find_and_touch('ship_filter_rarity_common')
-        Utils.update_screen()
         Utils.find_and_touch('ship_filter_rarity_rare')
-        Utils.update_screen()
         Utils.find_and_touch('ship_filter_confirm')
 
     def need_to_retire(self):

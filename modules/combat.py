@@ -316,8 +316,8 @@ class CombatModule(object):
             Utils.touch(boss_coords)
             Utils.update_screen()
             if Utils.exists('combat_unable'):
-                boss = Utils.scroll_find('combat_enemy_boss',
-                                         250, 175, 0.75)
+                boss = Utils.scroll_find('combat_enemy_boss', 250, 175, 0.75)
+                boss = [boss.x, boss.y]
                 enemies = Utils.find_all('combat_enemy_fleet', 0.89)
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
                 Utils.find_and_touch(closest_to_boss)
