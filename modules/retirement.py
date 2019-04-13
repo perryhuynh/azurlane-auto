@@ -33,7 +33,7 @@ class RetirementModule(object):
             while not done:
                 self.select_ships()
                 Utils.update_screen()
-                if (Utils.exists('retire_none_selected')):
+                if (not Utils.exists('retire_selected', 1)):
                     done = True
                 # Click confirm button
                 else:
@@ -76,10 +76,11 @@ class RetirementModule(object):
         Utils.find_and_touch('ship_filter_rarity_rare')
         Utils.find_and_touch('ship_filter_confirm')
 
+    @property
     def need_to_retire(self):
         """Checks whether the script needs to retire ships
 
         Returns:
             bool: True if the script needs to retire ships
         """
-        return self.stats.combat_done % self.config.combat['retire_cycle'] == 0
+        return self.stats.combat_done % self.config.combat['retire_cycle'] == 9

@@ -387,4 +387,6 @@ class Utils(object):
             in the list of coordinates to the specified coordinate as well the
             index of where it is in the list of coordinates
         """
+        print(coords)
+        print(coord)
         return spatial.KDTree(coords).query(coord)

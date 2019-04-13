@@ -103,7 +103,7 @@ Adb.init()
 while True:
     script.run_test()
     script.run_commission_cycle()
-    script.run_combat_cycle()
     script.run_retirement_cycle()
+    script.run_combat_cycle()
     script.run_mission_cycle()
     script.print_cycle_stats()
