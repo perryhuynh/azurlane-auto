@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from threading import Thread
 from util.logger import Logger
 from util.utils import Region, Utils
-
+from scipy import spatial
 
 class CombatModule(object):
 
@@ -68,7 +68,7 @@ class CombatModule(object):
                                    'switching to 2nd fleet to clear trash')
                     self.switch_fleet()
                     self.need_to_refocus = False
-                Utils.script_sleep(3)
+                Utils.script_sleep(1)
             # Trash
             if self.clear_trash():
                 # Boss
@@ -86,6 +86,25 @@ class CombatModule(object):
                 self.set_next_combat_time({'seconds': 10})
             return True
         return False
+
+    def get_enemies(self):
+        l1 = map(lambda x:[x[0], x[1]-10],Utils.find_all('combat_enemy_fleet_1',0.6))
+        l1 = [x for x in l1]
+        l2 = map(lambda x:[x[0]+20, x[1]+20],Utils.find_all('combat_enemy_fleet_2',0.6))
+        l2 = [x for x in l2]
+        l3 = map(lambda x:[x[0]+20, x[1]+20],Utils.find_all('combat_enemy_fleet_3',0.6))
+        l3 = [x for x in l3]
+        l4 = map(lambda x:[x[0]+20, x[1]+20],Utils.find_all('combat_enemy_fleet_4',0.6))
+        l4 = [x for x in l4]
+        l = l1+l2+l3+l4
+        c = [l[0]]
+        a = spatial.KDTree(c)
+        del l[0]
+        for x in l:
+            if a.query(x)[0] >= 15:
+                c.append(x)
+                a=spatial.KDTree(c)
+        return c
 
     def check_need_to_sortie(self):
         """Method to check whether the combat fleets need to sortie based on
@@ -122,11 +141,7 @@ class CombatModule(object):
             array: An array containing the x and y coordinates of the fleet's
             current location.
         """
-        coords = None
-        similarity = 0.9
-        while coords is None:
-            coords = Utils.find('combat_fleet_marker', similarity)
-            similarity -= 0.05
+        coords = Utils.scroll_find('combat_fleet_marker',250,175,0.9)
         return [coords.x + 10, coords.y + 175]
 
     def get_closest_enemy(self, blacklist=[]):
@@ -153,10 +168,13 @@ class CombatModule(object):
             Utils.update_screen()
             current_location = self.get_fleet_location()
             for swipe in swipes:
-                enemies = Utils.find_all('combat_enemy_fleet', 0.7)
+                enemies = self.get_enemies()
                 if enemies:
+                    a = spatial.KDTree(enemies)
                     for coord in blacklist:
-                        enemies.remove(coord)
+                        m = a.query(coord)
+                        if m[0] <= 15:
+                            del enemies[m[1]]
                     Logger.log_msg('Current location is: {}'
                                    .format(current_location))
                     Logger.log_msg('Enemies found at: {}'.format(enemies))
@@ -213,8 +231,9 @@ class CombatModule(object):
                 if not Utils.exists('combat_auto_enabled'):
                     Logger.log_msg('Enabling auto-battle')
                     Utils.touch_randomly(self.region['toggle_autobattle'])
+                    Utils.script_sleep(1)
                     Utils.update_screen()
-                    Utils.find_and_touch("confirm")
+                    Utils.find_and_touch("confirm",0.8)
                     Utils.update_screen()
                 self.combat_auto_enabled = True
         return ok
@@ -226,20 +245,15 @@ class CombatModule(object):
         Logger.log_msg('Starting battle')
         Utils.find_and_touch('combat_battle_start')
         Utils.update_screen()
-        while (not Utils.exists('in_battle')):
+        while (not Utils.exists('in_battle',0.8)):
             Utils.update_screen()
-        while (Utils.exists('in_battle')):
+        while (Utils.exists('in_battle',0.8)):
             Utils.update_screen()
-        Utils.script_sleep()
-        Utils.touch_randomly(Region(0,0,300,300))
-        Utils.script_sleep()
-        Utils.touch_randomly(Region(0,0,300,300))
-        Utils.script_sleep(2)
-        Utils.touch_randomly(Region(0,0,300,300))
-        Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             if Utils.find_and_touch('confirm'):
                 Logger.log_msg('Locked new ship.')
+            else:
+                Utils.touch_randomly(Region(0,0,300,300))
             Utils.update_screen()
         Logger.log_msg('Battle complete.')
         Utils.update_screen()
@@ -274,13 +288,14 @@ class CombatModule(object):
                 else:
                     enemy_coord = self.get_closest_enemy()
                     if tries > 2:
+                        enemy_coord = [enemy_coord[0], enemy_coord[1]+10]
                         blacklist.append(enemy_coord)
                         enemy_coord = self.get_closest_enemy(blacklist)
                     Logger.log_msg('Navigating to enemy fleet at {}'
                                    .format(enemy_coord))
                     Utils.touch(enemy_coord)
                     tries += 1
-                    Utils.script_sleep(3)
+                    Utils.script_sleep(3.5)
                     Utils.update_screen()
             if self.conduct_prebattle_check():
                 self.conduct_battle()
@@ -318,12 +333,12 @@ class CombatModule(object):
             if Utils.exists('combat_unable'):
                 boss = Utils.scroll_find('combat_enemy_boss', 250, 175, 0.75)
                 boss = [boss.x, boss.y]
-                enemies = Utils.find_all('combat_enemy_fleet', 0.89)
+                enemies = self.get_enemies()
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
-                Utils.find_and_touch(closest_to_boss)
+                Utils.touch(closest_to_boss)
                 Utils.update_screen()
                 if Utils.exists('combat_unable'):
-                    Utils.find_and_touch(self.get_closest_enemy())
+                    Utils.touch(self.get_closest_enemy())
                     Utils.script_sleep(3)
                     Utils.update_screen()
                     if Utils.exists('combat_battle_start'):
