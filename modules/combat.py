@@ -233,7 +233,7 @@ class CombatModule(object):
                     Utils.touch_randomly(self.region['toggle_autobattle'])
                     Utils.script_sleep(1)
                     Utils.update_screen()
-                    Utils.find_and_touch("confirm",0.8)
+                    Utils.find_and_touch('autobattle_confirm')
                     Utils.update_screen()
                 self.combat_auto_enabled = True
         return ok
