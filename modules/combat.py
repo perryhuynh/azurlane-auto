@@ -100,7 +100,6 @@ class CombatModule(object):
             l4 = [x for x in l4]
             l = l1 + l2 + l3 + l4
             sim -= 0.05
-        print(l)
         c = [l[0]]
         a = spatial.KDTree(c)
         del l[0]
