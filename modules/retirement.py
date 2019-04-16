@@ -84,5 +84,4 @@ class RetirementModule(object):
         Returns:
             bool: True if the script needs to retire ships
         """
-        return True
         return self.stats.combat_done % self.config.combat['retire_cycle'] == 9
