@@ -33,11 +33,12 @@ class RetirementModule(object):
             while not done:
                 self.select_ships()
                 Utils.update_screen()
-                if (not Utils.exists('retire_selected', 1)):
+                if (not Utils.exists('retire_selected')):
                     done = True
                 # Click confirm button
                 else:
                     self.retire_ships()
+            Utils.touch_randomly(Region(12, 8, 45, 30))
             Utils.touch_randomly(Region(12, 8, 45, 30))
 
     def select_ships(self):
@@ -83,4 +84,5 @@ class RetirementModule(object):
         Returns:
             bool: True if the script needs to retire ships
         """
+        return True
         return self.stats.combat_done % self.config.combat['retire_cycle'] == 9
