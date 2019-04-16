@@ -89,7 +89,7 @@ class CombatModule(object):
     def get_enemies(self):
         l = []
         sim = 0.7
-        while l is []:
+        while l == []:
             l1 = map(lambda x:[x[0], x[1] - 10],Utils.find_all('combat_enemy_fleet_1',0.7))
             l1 = [x for x in l1]
             l2 = map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_2',sim))
@@ -100,6 +100,7 @@ class CombatModule(object):
             l4 = [x for x in l4]
             l = l1 + l2 + l3 + l4
             sim -= 0.05
+        print(l)
         c = [l[0]]
         a = spatial.KDTree(c)
         del l[0]
@@ -241,10 +242,7 @@ class CombatModule(object):
         while (Utils.exists('in_battle',0.7)):
             Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
-            if Utils.find_and_touch('confirm'):
-                Logger.log_msg('Locked new ship.')
-            else:
-                Utils.touch_randomly(Region(0,0,300,300))
+            Utils.touch_randomly(Region(0,0,300,300))
             Utils.update_screen()
         Logger.log_msg('Battle complete.')
         Utils.script_sleep(1.5)
