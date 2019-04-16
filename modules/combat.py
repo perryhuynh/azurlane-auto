@@ -87,9 +87,9 @@ class CombatModule(object):
         return False
 
     def get_enemies(self):
-        l = None
+        l = []
         sim = 0.7
-        while l is None:
+        while l is []:
             l1 = map(lambda x:[x[0], x[1] - 10],Utils.find_all('combat_enemy_fleet_1',0.7))
             l1 = [x for x in l1]
             l2 = map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_2',sim))
