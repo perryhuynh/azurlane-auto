@@ -20,7 +20,6 @@ class CombatModule(object):
         self.next_combat_time = datetime.now()
         self.resume_previous_sortie = False
         self.kills_needed = 0
-        self.combat_auto_enabled = False
         self.hard_mode = self.config.combat['hard_mode']
         self.sortie_map = self.config.combat['map']
         self.event_map = self.sortie_map.split('-')[0] == 'E'
@@ -55,20 +54,20 @@ class CombatModule(object):
                 if self.hard_mode:
                     Utils.update_screen()
                     Utils.find_and_touch('map_menu_hard')
-                Utils.script_sleep()
+                Utils.script_sleep(1)
                 Utils.update_screen()
                 Utils.find_and_touch('map_{}'.format(self.sortie_map), 0.85)
                 Utils.touch_randomly(self.region['map_go_1'])
-                Utils.script_sleep()
+                Utils.script_sleep(1)
                 Utils.touch_randomly(self.region['unable_submarine'])
-                Utils.script_sleep()
+                Utils.script_sleep(1)
                 Utils.touch_randomly(self.region['map_go_2'])
                 if self.config.combat['alt_clear_fleet']:
                     Logger.log_msg('Alternate clearing fleet enabled, ' +
                                    'switching to 2nd fleet to clear trash')
                     self.switch_fleet()
                     self.need_to_refocus = False
-                Utils.script_sleep(1)
+                Utils.script_sleep(2)
             # Trash
             if self.clear_trash():
                 # Boss
@@ -88,15 +87,19 @@ class CombatModule(object):
         return False
 
     def get_enemies(self):
-        l1 = map(lambda x:[x[0], x[1]-10],Utils.find_all('combat_enemy_fleet_1',0.6))
-        l1 = [x for x in l1]
-        l2 = map(lambda x:[x[0]+20, x[1]+20],Utils.find_all('combat_enemy_fleet_2',0.6))
-        l2 = [x for x in l2]
-        l3 = map(lambda x:[x[0]+20, x[1]+20],Utils.find_all('combat_enemy_fleet_3',0.6))
-        l3 = [x for x in l3]
-        l4 = map(lambda x:[x[0]+20, x[1]+20],Utils.find_all('combat_enemy_fleet_4',0.6))
-        l4 = [x for x in l4]
-        l = l1+l2+l3+l4
+        l = None
+        sim = 0.7
+        while l is None:
+            l1 = map(lambda x:[x[0], x[1] - 10],Utils.find_all('combat_enemy_fleet_1',0.7))
+            l1 = [x for x in l1]
+            l2 = map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_2',sim))
+            l2 = [x for x in l2]
+            l3 = map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_3',sim))
+            l3 = [x for x in l3]
+            l4 = map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_4',sim))
+            l4 = [x for x in l4]
+            l = l1 + l2 + l3 + l4
+            sim -= 0.05
         c = [l[0]]
         a = spatial.KDTree(c)
         del l[0]
@@ -165,7 +168,6 @@ class CombatModule(object):
         while closest is None:
             if self.need_to_refocus and self.config.combat['two_fleet']:
                 self.refocus_fleet()
-            Utils.update_screen()
             current_location = self.get_fleet_location()
             for swipe in swipes:
                 enemies = self.get_enemies()
@@ -181,7 +183,7 @@ class CombatModule(object):
                     closest = enemies[Utils.find_closest(
                                       enemies, current_location)[1]]
                     Logger.log_msg('Closest enemy is at {}'.format(closest))
-                    return [closest[0], closest[1] - 10]
+                    return [closest[0], closest[1]]
                 else:
                     direction, multiplier = swipe[0], swipe[1]
                     if direction == 'n':
@@ -225,17 +227,6 @@ class CombatModule(object):
         elif fleet_morale['neutral']:
             self.set_next_combat_time({'hours': 1})
             ok = False
-        else:
-            if not self.combat_auto_enabled:
-                Logger.log_msg('Checking if auto-battle is enabled.')
-                if not Utils.exists('combat_auto_enabled'):
-                    Logger.log_msg('Enabling auto-battle')
-                    Utils.touch_randomly(self.region['toggle_autobattle'])
-                    Utils.script_sleep(1)
-                    Utils.update_screen()
-                    Utils.find_and_touch('autobattle_confirm')
-                    Utils.update_screen()
-                self.combat_auto_enabled = True
         return ok
 
     def conduct_battle(self):
@@ -245,9 +236,9 @@ class CombatModule(object):
         Logger.log_msg('Starting battle')
         Utils.find_and_touch('combat_battle_start')
         Utils.update_screen()
-        while (not Utils.exists('in_battle',0.8)):
+        while (not Utils.exists('in_battle',0.7)):
             Utils.update_screen()
-        while (Utils.exists('in_battle',0.8)):
+        while (Utils.exists('in_battle',0.7)):
             Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             if Utils.find_and_touch('confirm'):
@@ -256,9 +247,11 @@ class CombatModule(object):
                 Utils.touch_randomly(Region(0,0,300,300))
             Utils.update_screen()
         Logger.log_msg('Battle complete.')
+        Utils.script_sleep(1.5)
         Utils.update_screen()
         if Utils.find_and_touch('confirm'):
             Logger.log_msg('Dismissing urgent notification.')
+            Utils.update_screen()
         return True
 
     def clear_trash(self):
@@ -288,7 +281,7 @@ class CombatModule(object):
                 else:
                     enemy_coord = self.get_closest_enemy()
                     if tries > 2:
-                        enemy_coord = [enemy_coord[0], enemy_coord[1]+10]
+                        enemy_coord = [enemy_coord[0], enemy_coord[1]]
                         blacklist.append(enemy_coord)
                         enemy_coord = self.get_closest_enemy(blacklist)
                     Logger.log_msg('Navigating to enemy fleet at {}'
