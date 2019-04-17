@@ -1,24 +1,25 @@
 import subprocess
 from util.logger import Logger
 
-
 class Adb(object):
 
-    @classmethod
-    def init(cls):
+    service = ''
+
+    def init(self):
         """Kills and starts a new ADB server
         """
-        cls.kill_server()
-        cls.start_server()
+        self.kill_server()
+        return self.start_server()
 
-    @staticmethod
-    def start_server():
+    def start_server(self):
         """Starts the ADB server
         """
         cmd = ['adb', 'start-server']
         subprocess.call(cmd)
-        cmd = ['adb', 'connect', '127.0.0.1:7555']
-        subprocess.call(cmd)
+        cmd = ['adb', 'connect', self.service]
+        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell=True)
+        str = process.communicate()[0].decode()
+        return str.find('unable') == -1
 
     @staticmethod
     def kill_server():
@@ -38,7 +39,7 @@ class Adb(object):
             tuple: A tuple containing stdoutdata and stderrdata
         """
         cmd = ['adb', 'exec-out'] + args.split(' ')
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell = True)
         return process.communicate()[0]
 
     @staticmethod

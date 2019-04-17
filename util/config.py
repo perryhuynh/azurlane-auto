@@ -26,14 +26,15 @@ class Config(object):
         self.combat = {'enabled': False}
         self.missions = {'enabled': False}
         self.retirement = {'enabled': False}
+        self.network = {}
         self.read()
 
     def read(self):
         backup_config = deepcopy(self.__dict__)
         config = configparser.ConfigParser()
         config.read(self.config_file)
-        self.commissions['enabled'] = config.getboolean(
-            'Commissions', 'Enabled')
+        self.network['service'] = config.get('Network', 'Service')
+        self.commissions['enabled'] = config.getboolean('Commissions', 'Enabled')
         if config.getboolean('Combat', 'Enabled'):
             self._read_combat(config)
         else:
@@ -49,9 +50,7 @@ class Config(object):
             Logger.log_error("Invalid config. Please check your config file.")
             sys.exit(1)
         elif (not self.ok and self.initialized):
-            Logger.log_warning(
-                "Config change detected, but with problems. Rolling back "
-                "config.")
+            Logger.log_warning("Config change detected, but with problems. Rolling back config.")
             self._rollback_config(backup_config)
         elif (self.ok and self.initialized):
             if backup_config != self.__dict__:
