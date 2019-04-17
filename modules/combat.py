@@ -32,7 +32,6 @@ class CombatModule(object):
             'map_go_1': Region(875, 465, 115, 35),
             'map_go_2': Region(975, 585, 170, 45),
             'battle_start': Region(1000, 610, 125, 50),
-            'toggle_autobattle': Region(150, 80, 65, 20),
             'switch_fleet': Region(850, 650, 180, 40),
             'unable_submarine': Region(1100, 500, 50, 30)
         }
