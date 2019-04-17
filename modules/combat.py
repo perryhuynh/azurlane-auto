@@ -31,6 +31,7 @@ class CombatModule(object):
             'event_map': Region(1145, 140, 70, 40),
             'map_go_1': Region(875, 465, 115, 35),
             'map_go_2': Region(975, 585, 170, 45),
+            'autobattle': Region(40, 30, 190, 40),
             'battle_start': Region(1000, 610, 125, 50),
             'switch_fleet': Region(850, 650, 180, 40),
             'unable_submarine': Region(1100, 500, 50, 30)
@@ -236,9 +237,12 @@ class CombatModule(object):
         Logger.log_msg('Starting battle')
         Utils.find_and_touch('combat_battle_start')
         Utils.update_screen()
-        while (not Utils.exists('in_battle',0.7)):
+        while (not Utils.exists('in_battle')):
+            if Utils.exists('not_autobattle'):
+                Utils.touch_randomly(self.region['autobattle'])
+                Utils.find_and_touch('i_know')
             Utils.update_screen()
-        while (Utils.exists('in_battle',0.7)):
+        while (Utils.exists('in_battle')):
             Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             Utils.touch_randomly(Region(0,0,300,300))
