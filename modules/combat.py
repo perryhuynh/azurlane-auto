@@ -167,6 +167,7 @@ class CombatModule(object):
         while closest is None:
             if self.need_to_refocus and self.config.combat['two_fleet']:
                 self.refocus_fleet()
+                Utils.script_sleep(2)
             current_location = self.get_fleet_location()
             for swipe in swipes:
                 enemies = self.get_enemies()
