@@ -25,10 +25,21 @@ class Region(object):
         cls.h = h
 
 screen = None
+language = 'en-us'
 
 class Utils(object):
 
     DEFAULT_SIMILARITY = 0.95
+
+    @staticmethod
+    def setlanguage(lang):
+        """Set the language.
+
+        Args:
+            lang (string): The Name of Language.
+        """
+        global language
+        language = lang
 
     @staticmethod
     def multithreader(threads):
@@ -88,7 +99,7 @@ class Utils(object):
         Returns:
             Region: region object containing the location and size of the image
         """
-        template = cv2.imread('assets/{}.png'.format(image), 0)
+        template = cv2.imread('assets/{}/{}.png'.format(language, image), 0)
         width, height = template.shape[::-1]
         match = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
         value, location = cv2.minMaxLoc(match)[1], cv2.minMaxLoc(match)[3]

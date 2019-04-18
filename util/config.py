@@ -1,5 +1,6 @@
 import configparser
 import sys
+import os
 from copy import deepcopy
 from util.logger import Logger
 
@@ -26,14 +27,15 @@ class Config(object):
         self.combat = {'enabled': False}
         self.missions = {'enabled': False}
         self.retirement = {'enabled': False}
-        self.network = {}
+        self.basic = {}
         self.read()
 
     def read(self):
         backup_config = deepcopy(self.__dict__)
         config = configparser.ConfigParser()
         config.read(self.config_file)
-        self.network['service'] = config.get('Network', 'Service')
+        self.basic['service'] = config.get('Basic', 'Service')
+        self.basic['language'] = config.get('Basic', 'Language')
         self.commissions['enabled'] = config.getboolean('Commissions', 'Enabled')
         if config.getboolean('Combat', 'Enabled'):
             self._read_combat(config)
@@ -94,6 +96,10 @@ class Config(object):
         if not self.initialized:
             Logger.log_msg("Validating config")
         self.ok = True
+
+        if not os.path.exists('assets/{}'.format(self.basic['language'])):
+            self.ok=False
+            Logger.log_error('Invalid Language Selected.')
 
         if self.combat['enabled']:
             map = self.combat['map'].split('-')

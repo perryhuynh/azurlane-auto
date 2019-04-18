@@ -1,5 +1,6 @@
 import sys
 import argparse
+from util.utils import Utils
 from modules.combat import CombatModule
 from modules.commission import CommissionModule
 from modules.mission import MissionModule
@@ -100,9 +101,9 @@ else:
 
 script = ALAuto(config)
 
-Adb.service = config.network['service']
-adb = Adb()
-if adb.init():
+Adb.service = config.basic['service']
+Utils.setlanguage(config.basic['language'])
+if Adb().init():
     Logger.log_msg('Sucessfully connected to the service.')
 else:
     Logger.log_error('Unable to connect to the service.')
