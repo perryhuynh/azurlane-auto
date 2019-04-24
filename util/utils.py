@@ -99,7 +99,6 @@ class Utils(object):
         Returns:
             Region: region object containing the location and size of the image
         """
-        Logger.log_msg(language)
         template = cv2.imread('assets/{}/{}.png'.format(language, image), 0)
         width, height = template.shape[::-1]
         match = cv2.matchTemplate(screen, template, cv2.TM_CCOEFF_NORMED)
