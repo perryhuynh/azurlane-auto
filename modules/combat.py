@@ -240,7 +240,8 @@ class CombatModule(object):
         while (not Utils.exists('in_battle')):
             if Utils.exists('not_autobattle'):
                 Utils.touch_randomly(self.region['autobattle'])
-                Utils.find_and_touch('i_know')
+                Utils.script_sleep(1)
+                Utils.find_and_touch('i_know', 0.8)
             Utils.update_screen()
         while (Utils.exists('in_battle')):
             Utils.update_screen()
