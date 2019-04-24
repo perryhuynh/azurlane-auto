@@ -88,9 +88,9 @@ class CombatModule(object):
 
     def get_enemies(self):
         l = []
-        sim = 0.7
-        while l == []:
-            l1 = filter(lambda x:x[0] > 120, map(lambda x:[x[0], x[1] - 10],Utils.find_all('combat_enemy_fleet_1',0.7)))
+        sim = 0.95
+        while l == [] and sim >= 0.75:
+            l1 = filter(lambda x:x[0] > 120, map(lambda x:[x[0], x[1] - 10],Utils.find_all('combat_enemy_fleet_1',sim)))
             l1 = [x for x in l1]
             l2 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_2',sim)))
             l2 = [x for x in l2]
@@ -100,6 +100,8 @@ class CombatModule(object):
             l4 = [x for x in l4]
             l = l1 + l2 + l3 + l4
             sim -= 0.05
+        if l == []:
+            return []
         c = [l[0]]
         a = spatial.KDTree(c)
         del l[0]
