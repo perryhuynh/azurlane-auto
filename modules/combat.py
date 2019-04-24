@@ -89,7 +89,7 @@ class CombatModule(object):
     def get_enemies(self):
         l = []
         sim = 0.95
-        while l == [] and sim >= 0.75:
+        while l == [] and sim >= 0.6:
             l1 = filter(lambda x:x[0] > 120, map(lambda x:[x[0], x[1] - 10],Utils.find_all('combat_enemy_fleet_1',sim)))
             l1 = [x for x in l1]
             l2 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_2',sim)))
