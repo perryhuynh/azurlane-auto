@@ -30,7 +30,7 @@ class CombatModule(object):
             'home_menu_attack': Region(1000, 365, 180, 60),
             'event_map': Region(1145, 140, 70, 40),
             'map_go_1': Region(875, 465, 115, 35),
-            'map_go_2': Region(975, 585, 170, 45),
+            'map_go_2': Region(980, 600, 180, 55),
             'autobattle': Region(40, 30, 190, 40),
             'battle_start': Region(1000, 610, 125, 50),
             'switch_fleet': Region(850, 650, 180, 40),
