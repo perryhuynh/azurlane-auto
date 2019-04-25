@@ -56,6 +56,8 @@ class CombatModule(object):
                     Utils.find_and_touch('map_menu_hard')
                 Utils.script_sleep(1)
                 Utils.update_screen()
+                while not Utils.exists('map_{}'.format(self.sortie_map), 0.85):
+                    Utils.update_screen()
                 Utils.find_and_touch('map_{}'.format(self.sortie_map), 0.85)
                 Utils.touch_randomly(self.region['map_go_1'])
                 Utils.script_sleep(1)
@@ -90,13 +92,13 @@ class CombatModule(object):
         l = []
         sim = 0.95
         while l == [] and sim >= 0.6:
-            l1 = filter(lambda x:x[0] > 120, map(lambda x:[x[0], x[1] - 10],Utils.find_all('combat_enemy_fleet_1',sim)))
+            l1 = filter(lambda x:x[0] > 120, map(lambda x:[x[0], x[1] - 10], Utils.find_all('combat_enemy_fleet_1', sim)))
             l1 = [x for x in l1]
-            l2 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_2',sim)))
+            l2 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20], Utils.find_all('combat_enemy_fleet_2', sim)))
             l2 = [x for x in l2]
-            l3 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_3',sim)))
+            l3 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20], Utils.find_all('combat_enemy_fleet_3', sim)))
             l3 = [x for x in l3]
-            l4 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20],Utils.find_all('combat_enemy_fleet_4',sim)))
+            l4 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20], Utils.find_all('combat_enemy_fleet_4', sim)))
             l4 = [x for x in l4]
             l = l1 + l2 + l3 + l4
             sim -= 0.05
