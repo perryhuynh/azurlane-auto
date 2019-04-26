@@ -28,3 +28,12 @@ If you do not have git or a clone of the azurlane-auto repository, head to the [
 
 ## License
 azurlane-auto is WTFPL licensed, as found in the LICENSE file.
+
+---
+
+## 安装与使用
+
+* 安装`python 3.*`并加入`path`
+* 目录下运行`pip3 install -r requirements.txt`
+* 安装`ADB`并加入`path`
+* 运行`azurlane.py`
