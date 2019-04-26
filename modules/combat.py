@@ -88,7 +88,7 @@ class CombatModule(object):
             return True
         return False
 
-    def get_enemies(self):
+    def get_enemies(self,blacklist=[]):
         l = []
         sim = 0.95
         while l == [] and sim >= 0.6:
@@ -101,6 +101,12 @@ class CombatModule(object):
             l4 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20], Utils.find_all('combat_enemy_fleet_4', sim)))
             l4 = [x for x in l4]
             l = l1 + l2 + l3 + l4
+            a = spatial.KDTree(l)
+            for coord in blacklist:
+                m = a.query(coord)
+                if m[0] <= 15:
+                    del l[m[1]]
+                    a = spatial.KDTree(l)
             sim -= 0.05
         if l == []:
             return []
@@ -175,13 +181,8 @@ class CombatModule(object):
                 Utils.script_sleep(2)
             current_location = self.get_fleet_location()
             for swipe in swipes:
-                enemies = self.get_enemies()
+                enemies = self.get_enemies(blacklist)                    
                 if enemies:
-                    a = spatial.KDTree(enemies)
-                    for coord in blacklist:
-                        m = a.query(coord)
-                        if m[0] <= 15:
-                            del enemies[m[1]]
                     Logger.log_msg('Current location is: {}'
                                    .format(current_location))
                     Logger.log_msg('Enemies found at: {}'.format(enemies))
