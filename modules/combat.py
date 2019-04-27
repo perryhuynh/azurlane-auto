@@ -101,12 +101,13 @@ class CombatModule(object):
             l4 = filter(lambda x:x[0] > 120, map(lambda x:[x[0] + 20, x[1] + 20], Utils.find_all('combat_enemy_fleet_4', sim)))
             l4 = [x for x in l4]
             l = l1 + l2 + l3 + l4
-            a = spatial.KDTree(l)
-            for coord in blacklist:
-                m = a.query(coord)
-                if m[0] <= 15:
-                    del l[m[1]]
-                    a = spatial.KDTree(l)
+            if l:
+                a = spatial.KDTree(l)
+                for coord in blacklist:
+                    m = a.query(coord)
+                    if m[0] <= 15:
+                        del l[m[1]]
+                        a = spatial.KDTree(l)
             sim -= 0.05
         if l == []:
             return []
