@@ -11,7 +11,7 @@ class Adb(object):
         """
         self.kill_server()
         self.start_server()
-        cmd = ['adb', 'shell', 'ls']
+        cmd = ['adb', 'shell', 'exit']
         process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell=True)
         str = process.communicate()[0].decode()
         return str.find('error') == -1
