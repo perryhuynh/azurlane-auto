@@ -1,4 +1,5 @@
 import subprocess
+from os import path
 from util.logger import Logger
 
 class Adb(object):
@@ -10,10 +11,10 @@ class Adb(object):
         """
         self.kill_server()
         self.start_server()
-        cmd = ['adb', 'shell']
+        cmd = ['adb', 'shell', 'ls']
         process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell=True)
         str = process.communicate()[0].decode()
-        return str.find('error') != -1
+        return str.find('error') == -1
 
     def start_server(self):
         """Starts the ADB server
@@ -41,7 +42,8 @@ class Adb(object):
             tuple: A tuple containing stdoutdata and stderrdata
         """
         cmd = ['adb', 'exec-out'] + args.split(' ')
-        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell = True)
+        dir = path.dirname(path.dirname(__file__))
+        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell = True, cwd = dir)
         return process.communicate()[0]
 
     @staticmethod
@@ -52,4 +54,4 @@ class Adb(object):
             args (string): Command to execute.
         """
         cmd = ['adb', 'shell'] + args.split(' ')
-        subprocess.call(cmd, shell=True)
+        subprocess.call(cmd, shell = True)
