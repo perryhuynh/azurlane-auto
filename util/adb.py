@@ -9,7 +9,11 @@ class Adb(object):
         """Kills and starts a new ADB server
         """
         self.kill_server()
-        return self.start_server()
+        self.start_server()
+        cmd = ['adb', 'shell']
+        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell=True)
+        str = process.communicate()[0].decode()
+        return str.find('error') != -1
 
     def start_server(self):
         """Starts the ADB server
@@ -17,9 +21,7 @@ class Adb(object):
         cmd = ['adb', 'start-server']
         subprocess.call(cmd)
         cmd = ['adb', 'connect', self.service]
-        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell=True)
-        str = process.communicate()[0].decode()
-        return str.find('unable') == -1
+        subprocess.call(cmd)
 
     @staticmethod
     def kill_server():
