@@ -43,8 +43,8 @@ class Adb(object):
         """
         cmd = ['adb', 'exec-out'] + args.split(' ')
         dir = path.dirname(path.dirname(__file__))
-        process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell = True, cwd = dir)
-        return process.communicate()[0]
+        process = subprocess.Popen(cmd, stdout = subprocess.PIPE)
+        return process.communicate()[0].replace(b'\r\n',b'\n')
 
     @staticmethod
     def shell(args):
@@ -54,4 +54,4 @@ class Adb(object):
             args (string): Command to execute.
         """
         cmd = ['adb', 'shell'] + args.split(' ')
-        subprocess.call(cmd, shell = True)
+        subprocess.call(cmd)
