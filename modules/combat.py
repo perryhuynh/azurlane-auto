@@ -54,7 +54,7 @@ class CombatModule(object):
                 if self.hard_mode:
                     Utils.update_screen()
                     Utils.find_and_touch('map_menu_hard')
-                Utils.script_sleep(2)
+                Utils.script_sleep(1)
                 Utils.update_screen()
                 Utils.find_and_touch('map_{}'.format(self.sortie_map), 0.85)
                 Utils.touch_randomly(self.region['map_go_1'])
