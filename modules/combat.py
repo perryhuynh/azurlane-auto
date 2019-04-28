@@ -338,7 +338,7 @@ class CombatModule(object):
                 Utils.script_sleep(3)
                 Utils.update_screen()
                 if Utils.find_and_touch('combat_evade'):
-                    Utils.script_sleep(1)
+                    Utils.script_sleep(2)
                     Utils.update_screen()
                     if Utils.exists('combat_battle_start'):
                         self.conduct_battle()
