@@ -338,10 +338,12 @@ class CombatModule(object):
                 Utils.script_sleep(3)
                 Utils.update_screen()
                 if Utils.find_and_touch('combat_evade'):
-                    Utils.script_sleep()
+                    Utils.script_sleep(1)
+                    Utils.update_screen()
                     if Utils.exists('combat_battle_start'):
                         self.conduct_battle()
-                        self.refocus_fleet()
+                        if not self.config.comabt['two_fleet']:
+                            self.refocus_fleet()
                 elif Utils.find_and_touch('combat_items_received'):
                     pass
         if self.conduct_prebattle_check():
@@ -358,6 +360,7 @@ class CombatModule(object):
         Logger.log_msg('Refocusing fleet.')
         self.switch_fleet()
         self.switch_fleet()
+        Utils.update_screen()
 
     def check_morale(self):
         """Method to multithread the detection of morale states of the fleet.
