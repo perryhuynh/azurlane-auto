@@ -233,13 +233,13 @@ class CombatModule(object):
         Logger.log_msg('Starting battle')
         Utils.find_and_touch('combat_battle_start')
         Utils.update_screen()
-        while (not Utils.exists('in_battle', 0.9)):
-            if Utils.exists('not_autobattle'):
+        while (not Utils.exists('in_battle', 0.85)):
+            if Utils.exists('not_autobattle', 0.85):
                 Utils.touch_randomly(self.region['autobattle'])
                 Utils.script_sleep(1)
                 Utils.find_and_touch('i_know', 0.8)
             Utils.update_screen()
-        while (Utils.exists('in_battle', 0.9)):
+        while (Utils.exists('in_battle', 0.85)):
             Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             Utils.touch_randomly(Region(0,0,300,300))
