@@ -309,13 +309,6 @@ class CombatModule(object):
                     'combat_enemy_boss', 250, 175, similarity)
                 similarity -= 0.015
             Logger.log_msg('Boss found at: {}'.format([boss.x, boss.y]))
-            Logger.log_msg('Focusing on boss')
-            Utils.swipe(boss.x, boss.y, 640, 360, 250)
-            boss = None
-            while boss is None:
-                Utils.update_screen()
-                boss = Utils.find('combat_enemy_boss', similarity)
-                similarity -= 0.015
             # Click slightly above boss to be able to click on it in case
             # the boss is obstructed by another fleet or enemy
             boss_coords = [boss.x + 25, boss.y + 5]
