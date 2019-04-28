@@ -286,8 +286,7 @@ class CombatModule(object):
                                    .format(enemy_coord))
                     Utils.touch(enemy_coord)
                     tries += 1
-                    while (not Utils.exists('combat_evade')) and (not Utils.exists('combat_battle_start')):
-                        Utils.update_screen()
+                    Utils.script_sleep(3)
             if self.conduct_prebattle_check():
                 self.conduct_battle()
                 self.need_to_refocus = True
@@ -325,8 +324,7 @@ class CombatModule(object):
                 if Utils.exists('combat_unable'):
                     Utils.touch(self.get_closest_enemy())
                 b = True
-            while (not Utils.exists('combat_evade')) and (not Utils.exists('combat_battle_start')):
-                Utils.update_screen()
+            Utils.script_sleep(3)
             if Utils.find_and_touch('combat_evade'):
                 Utils.script_sleep(2)
                 Utils.update_screen()
