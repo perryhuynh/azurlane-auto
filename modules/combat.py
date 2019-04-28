@@ -100,10 +100,12 @@ class CombatModule(object):
             if l:
                 a = spatial.KDTree(l)
                 for coord in blacklist:
-                    m = a.query(coord)
-                    if m[0] <= 15:
-                        del l[m[1]]
-                        a = spatial.KDTree(l)
+                    if l:
+                        m = a.query(coord)
+                        if m[0] <= 15:
+                            del l[m[1]]
+                            if l:
+                                a = spatial.KDTree(l)
             sim -= 0.05
         if l == []:
             return []
