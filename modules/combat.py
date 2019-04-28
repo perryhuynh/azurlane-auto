@@ -314,6 +314,7 @@ class CombatModule(object):
             boss_coords = [boss.x + 25, boss.y + 5]
             Utils.touch(boss_coords)
             Utils.update_screen()
+            b = False
             if Utils.exists('combat_unable'):
                 boss = Utils.scroll_find('combat_enemy_boss', 250, 175, 0.75)
                 boss = [boss.x, boss.y]
@@ -323,27 +324,18 @@ class CombatModule(object):
                 Utils.update_screen()
                 if Utils.exists('combat_unable'):
                     Utils.touch(self.get_closest_enemy())
-                while (not Utils.exists('combat_evade')) and (not Utils.exists('combat_battle_start')):
-                    Utils.update_screen()
-                if Utils.find_and_touch('combat_evade'):
-                    Utils.script_sleep(2)
-                    Utils.update_screen()
-                    if Utils.exists('combat_battle_start'):
-                        self.conduct_battle()
-                        if not self.config.comabt['two_fleet']:
-                            self.refocus_fleet()
-                elif self.conduct_prebattle_check():
+                b = True
+            while (not Utils.exists('combat_evade')) and (not Utils.exists('combat_battle_start')):
+                Utils.update_screen()
+            if Utils.find_and_touch('combat_evade'):
+                Utils.script_sleep(2)
+                Utils.update_screen()
+                if Utils.exists('combat_battle_start'):
                     self.conduct_battle()
-            else:
-                while (not Utils.exists('combat_evade')) and (not Utils.exists('combat_battle_start')):
-                    Utils.update_screen()
-                if Utils.find_and_touch('combat_evade'):
-                    Utils.script_sleep(2)
-                    Utils.update_screen()
-                    if Utils.exists('combat_battle_start'):
-                        self.conduct_battle()
-                        if not self.config.comabt['two_fleet']:
-                            self.refocus_fleet()
+                    if not self.config.comabt['two_fleet']:
+                        self.refocus_fleet()
+            elif b and self.conduct_prebattle_check():
+                self.conduct_battle()
         if self.conduct_prebattle_check():
             self.conduct_battle()
 
