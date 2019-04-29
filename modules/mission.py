@@ -1,5 +1,5 @@
 from util.utils import Utils, Region
-
+from util.logger import Logger
 
 class MissionModule(object):
     def __init__(self, config, stats):

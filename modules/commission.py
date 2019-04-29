@@ -1,4 +1,5 @@
-from util.utils import Utils
+from util.utils import Utils, Region
+from util.logger import Logger
 
 
 class CommissionModule(object):
