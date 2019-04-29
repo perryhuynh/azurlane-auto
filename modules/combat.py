@@ -309,7 +309,7 @@ class CombatModule(object):
                 Utils.update_screen()
                 boss = Utils.scroll_find(
                     'combat_enemy_boss', 250, 175, similarity)
-                similarity -= 0.015
+                similarity -= 0.5
             Logger.log_msg('Boss found at: {}'.format([boss.x, boss.y]))
             # Click slightly above boss to be able to click on it in case
             # the boss is obstructed by another fleet or enemy
