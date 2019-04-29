@@ -57,7 +57,6 @@ class CombatModule(object):
                 Utils.script_sleep(1)
                 Utils.update_screen()
                 Utils.find_and_touch('map_{}'.format(self.sortie_map), 0.85)
-                Utils.script_sleep()
                 Utils.touch_randomly(self.region['map_go_1'])
                 Utils.touch_randomly(self.region['unable_submarine'])
                 Utils.touch_randomly(self.region['map_go_2'])
