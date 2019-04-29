@@ -244,8 +244,11 @@ class CombatModule(object):
         while (Utils.exists('in_battle', 0.85)):
             Utils.update_screen()
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
-            Utils.touch_randomly(Region(0,0,300,300))
+            Utils.touch(640, 360)
             Utils.update_screen()
+            if Utils.find_and_touch('confirm'):
+                Logger.log_success('Recieve new ship!')
+                Utils.update_screen()
         Logger.log_msg('Battle complete.')
         Utils.script_sleep(1.5)
         Utils.update_screen()
@@ -318,6 +321,7 @@ class CombatModule(object):
             Utils.update_screen()
             b = False
             if Utils.exists('combat_unable'):
+                Logger.log_msg('Unable to reach boss')
                 enemies = self.get_enemies()
                 boss = [boss.x, boss.y]
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
