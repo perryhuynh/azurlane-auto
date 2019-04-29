@@ -246,7 +246,7 @@ class CombatModule(object):
         while not Utils.find_and_touch('combat_battle_confirm', 0.85):
             Utils.touch([640, 200])
             Utils.update_screen()
-            if Utils.find_and_touch('confirm'):
+            if Utils.find_and_touch('confirm', 0.8):
                 Logger.log_success('Recieve new ship!')
                 Utils.update_screen()
         Logger.log_msg('Battle complete.')
