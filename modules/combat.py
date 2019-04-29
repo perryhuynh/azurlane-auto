@@ -318,8 +318,8 @@ class CombatModule(object):
             Utils.update_screen()
             b = False
             if Utils.exists('combat_unable'):
-                boss = Utils.scroll_find('combat_enemy_boss', 250, 175, 0.75)
-                boss = [boss.x, boss.y]
+                Logger.log_msg('Focusing on boss')
+                Utils.swipe(boss.x, boss.y, 640, 360, 250)
                 enemies = self.get_enemies()
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
                 Utils.touch(closest_to_boss)
