@@ -321,6 +321,7 @@ class CombatModule(object):
                 Logger.log_msg('Focusing on boss')
                 Utils.swipe(boss.x, boss.y, 640, 360, 250)
                 enemies = self.get_enemies()
+                boss = [boss.x, boss.y]
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
                 Utils.touch(closest_to_boss)
                 Utils.update_screen()
