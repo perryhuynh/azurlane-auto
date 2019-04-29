@@ -57,6 +57,7 @@ class CombatModule(object):
                 Utils.script_sleep(1)
                 Utils.update_screen()
                 Utils.find_and_touch('map_{}'.format(self.sortie_map), 0.85)
+                Utils.script_sleep()
                 Utils.touch_randomly(self.region['map_go_1'])
                 Utils.touch_randomly(self.region['unable_submarine'])
                 Utils.touch_randomly(self.region['map_go_2'])
@@ -288,7 +289,7 @@ class CombatModule(object):
                                    .format(enemy_coord))
                     Utils.touch(enemy_coord)
                     tries += 1
-                    Utils.script_sleep(3)
+                    Utils.script_sleep(4)
                     Utils.update_screen()
             if self.conduct_prebattle_check():
                 self.conduct_battle()
@@ -327,7 +328,7 @@ class CombatModule(object):
                 if Utils.exists('combat_unable'):
                     Utils.touch(self.get_closest_enemy())
                 b = True
-            Utils.script_sleep(3)
+            Utils.script_sleep(4)
             Utils.update_screen()
             if Utils.find_and_touch('combat_evade'):
                 Utils.script_sleep(2)
