@@ -41,4 +41,4 @@ azurlane-auto is WTFPL licensed, as found in the LICENSE file.
 ## 关于贴图
 
 * 将`map_x-x`如`map_3-4.png`放入`assets`下对应语言中
-* 注意:抠图前请先将整个屏幕的截图调为`1920x720`分辨率
+* 注意:抠图前请先将整个屏幕的截图调为`1280x720`分辨率
