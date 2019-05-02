@@ -171,7 +171,7 @@ class CombatModule(object):
             enemy to the fleet's current location
         """
         swipes = [['n', 1.0], ['e', 1.0], ['s', 1.5], ['w', 1.5]]
-        sim = 0.75
+        sim = 0.8
         closest = None
         while closest is None:
             if self.need_to_refocus and self.config.combat['two_fleet']:
@@ -192,7 +192,7 @@ class CombatModule(object):
                     return [closest[0], closest[1]]
                 else:
                     direction, multiplier = swipe[0], swipe[1]
-                    Logger.log_msg('Swipe {} to find enemy'.format(swipe[0]))
+                    Logger.log_msg('Swipe {} to find enemy by similarity {}'.format(swipe[0],sim))
                     if direction == 'n':
                         current_location[1] = current_location[1] + (2 * y_dist * multiplier)
                         Utils.swipe(640, 360 - y_dist * multiplier, 640, 360 + y_dist * multiplier, 250)
@@ -210,7 +210,7 @@ class CombatModule(object):
                         Utils.swipe(640 - x_dist * multiplier, 360, 640 + x_dist * multiplier, 360, 250)
                         x_dist *= 1.3
                 self.need_to_refocus = True
-                sim -= 0.5
+            sim -= 0.5
         return None
 
     def conduct_prebattle_check(self):
