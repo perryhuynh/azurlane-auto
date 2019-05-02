@@ -173,7 +173,7 @@ class CombatModule(object):
         x_dist = 125
         y_dist = 175
         swipes = [['n', 1.0], ['e', 1.0], ['s', 1.5], ['w', 1.5]]
-        sim = 0.7
+        sim = 0.75
         closest = None
         while closest is None:
             if self.need_to_refocus and self.config.combat['two_fleet']:
@@ -191,24 +191,24 @@ class CombatModule(object):
                     Logger.log_msg('Closest enemy is at {}'.format(closest))
                     return [closest[0], closest[1]]
                 else:
-                    Logger.log_msg('Swipe to find enemy')
                     direction, multiplier = swipe[0], swipe[1]
+                    Logger.log_msg('Swipe {} to find enemy'.format(swipe[0]))
                     if direction == 'n':
                         current_location[1] = current_location[1] + (2 * y_dist * multiplier)
                         Utils.swipe(640, 360 - y_dist * multiplier, 640, 360 + y_dist * multiplier, 250)
-                        y_dist *= 2
+                        y_dist *= 1.3
                     elif direction == 's':
                         current_location[1] = current_location[1] - (2 * y_dist * multiplier)
                         Utils.swipe(640, 360 + y_dist * multiplier, 640, 360 - y_dist * multiplier, 250)
-                        y_dist *= 2
+                        y_dist *= 1.3
                     elif direction == 'e':
                         current_location[0] = current_location[0] + (2 * x_dist * multiplier)
                         Utils.swipe(640 + x_dist * multiplier, 360, 640 - x_dist * multiplier, 360, 250)
-                        x_dist *= 2
+                        x_dist *= 1.3
                     elif direction == 'w':
                         current_location[0] = current_location[0] - (2 * x_dist * multiplier)
                         Utils.swipe(640 - x_dist * multiplier, 360, 640 + x_dist * multiplier, 360, 250)
-                        x_dist *= 2
+                        x_dist *= 1.3
                     sim -= 0.5
                 self.need_to_refocus = True
         return None
