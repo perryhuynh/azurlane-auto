@@ -86,6 +86,7 @@ class Utils(object):
         screen = None
         while screen is None:
             screen = cv2.imdecode(numpy.fromstring(Adb.exec_out(r"screencap -p"),dtype=numpy.uint8),0)
+        screen = cv2.resize(screen, (1920, 720))
 
     @staticmethod
     def find(image, similarity=DEFAULT_SIMILARITY):
