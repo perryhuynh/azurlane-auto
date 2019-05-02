@@ -295,6 +295,7 @@ class CombatModule(object):
                     Utils.touch(enemy_coord)
                     tries += 1
                     Utils.script_sleep(4)
+                    Utils.touch([20, 360])
                     Utils.update_screen()
             if self.conduct_prebattle_check():
                 self.conduct_battle()
@@ -334,6 +335,7 @@ class CombatModule(object):
                     Utils.touch(self.get_closest_enemy())
                 b = True
             Utils.script_sleep(4)
+            Utils.touch([20, 360])
             Utils.update_screen()
             if Utils.find_and_touch('combat_evade'):
                 Utils.script_sleep(2)
