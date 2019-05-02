@@ -170,8 +170,6 @@ class CombatModule(object):
             array: An array containing the x and y coordinates of the closest
             enemy to the fleet's current location
         """
-        x_dist = 125
-        y_dist = 175
         swipes = [['n', 1.0], ['e', 1.0], ['s', 1.5], ['w', 1.5]]
         sim = 0.75
         closest = None
@@ -180,6 +178,8 @@ class CombatModule(object):
                 self.refocus_fleet()
                 Utils.script_sleep(2)
             current_location = self.get_fleet_location()
+            x_dist = 125
+            y_dist = 175
             for swipe in swipes:
                 enemies = self.get_enemies(sim, blacklist)                    
                 if enemies:
@@ -209,8 +209,8 @@ class CombatModule(object):
                         current_location[0] = current_location[0] - (2 * x_dist * multiplier)
                         Utils.swipe(640 - x_dist * multiplier, 360, 640 + x_dist * multiplier, 360, 250)
                         x_dist *= 1.3
-                    sim -= 0.5
                 self.need_to_refocus = True
+                sim -= 0.5
         return None
 
     def conduct_prebattle_check(self):
