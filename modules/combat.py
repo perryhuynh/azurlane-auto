@@ -331,8 +331,14 @@ class CombatModule(object):
                 closest_to_boss = enemies[Utils.find_closest(enemies, boss)[1]]
                 Utils.touch(closest_to_boss)
                 Utils.update_screen()
-                if Utils.exists('combat_unable'):
-                    Utils.touch(self.get_closest_enemy())
+                blacklist = []
+                while Utils.exists('combat_unable'):
+                    coord = self.get_closest_enemy()
+                    Utils.touch(coord)
+                    Utils.update_screen()
+                    if Utils.exists('combat_unable'):
+                        coord = [coord[0], coord[1]]
+                        blacklist.append(coord)
                 b = True
             Utils.script_sleep(4)
             Utils.touch([20, 360])
