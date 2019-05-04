@@ -333,7 +333,7 @@ class CombatModule(object):
                 Utils.update_screen()
                 blacklist = []
                 while Utils.exists('combat_unable'):
-                    coord = self.get_closest_enemy()
+                    coord = self.get_closest_enemy(blacklist)
                     Utils.touch(coord)
                     Utils.update_screen()
                     if Utils.exists('combat_unable'):
