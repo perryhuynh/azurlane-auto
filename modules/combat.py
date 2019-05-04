@@ -153,7 +153,7 @@ class CombatModule(object):
             array: An array containing the x and y coordinates of the fleet's
             current location.
         """
-        coords = Utils.scroll_find('combat_fleet_marker',250,175,0.9)
+        coords = Utils.scroll_find('combat_fleet_marker',250,175,0.8)
         return [coords.x + 10, coords.y + 175]
 
     def get_closest_enemy(self, blacklist=[]):
@@ -177,7 +177,7 @@ class CombatModule(object):
             if self.need_to_refocus and self.config.combat['two_fleet']:
                 self.refocus_fleet()
                 Utils.script_sleep(2)
-            current_location = self.get_fleet_location()
+            current_location = self.get_fleet_location() 
             x_dist = 125
             y_dist = 175
             for swipe in swipes:
