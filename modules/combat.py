@@ -348,7 +348,7 @@ class CombatModule(object):
                 Utils.update_screen()
                 if Utils.exists('combat_battle_start'):
                     self.conduct_battle()
-                    if not self.config.comabt['two_fleet']:
+                    if not self.config.combat['two_fleet']:
                         self.refocus_fleet()
             elif b and self.conduct_prebattle_check():
                 self.conduct_battle()
