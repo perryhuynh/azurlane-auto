@@ -350,8 +350,11 @@ class CombatModule(object):
                     self.conduct_battle()
                     if not self.config.combat['two_fleet']:
                         self.refocus_fleet()
-            elif b and self.conduct_prebattle_check():
-                self.conduct_battle()
+            elif Utils.exists('combat_battle_start') and b:
+                if self.conduct_prebattle_check():
+                    self.conduct_battle()
+                    if not self.config.combat['two_fleet']:
+                        self.refocus_fleet()
         if self.conduct_prebattle_check():
             self.conduct_battle()
 
